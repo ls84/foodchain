@@ -1,0 +1,10 @@
+version: '3'
+services:
+  sawtoothsign:
+    image: node:latest
+    container_name: foodchain
+    volumes:
+      - .:/foodchain
+    ports:
+      - 8000:8000
+    entrypoint: ['tail', '-f', '/dev/null']
