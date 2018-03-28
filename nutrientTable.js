@@ -72,8 +72,12 @@ const dataBinder = function () {
   }
 
   const get = (t, p, r) => {
-    console.log('get')
-    return this[p].value
+    let value = this[p].value
+    if (value === '') return undefined
+    if (['moisture', 'protein', 'fat', 'carbohydrate', 'minerals', 'energy'].some((v) => p === v)) value = Number(value)
+    if (isNaN(value)) throw new Error(`${p} is not a number`)
+
+    return value
     // return Reflect.get(t, p, r)
   }
 
@@ -138,6 +142,7 @@ class nutrientTable extends HTMLElement {
     value.setAttribute('type', 'text')
     value.classList.add(styleSheet.classes.value)
     energy.appendChild(value)
+    this.energy = value
 
     let unit = document.createElement('span')
     unit.textContent = 'kcal'
