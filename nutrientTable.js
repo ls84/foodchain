@@ -67,11 +67,17 @@ const styleSheet = jss.createStyleSheet(styles)
 
 const dataBinder = function () {
   const set = (t, p, v, r) => {
-    console.log(this.dataset)
+    console.log('put')
     return Reflect.set(t, p, v, r)
   }
 
-  return { set }
+  const get = (t, p, r) => {
+    console.log('get')
+    return this[p].value
+    // return Reflect.get(t, p, r)
+  }
+
+  return { set, get }
 }
 
 class nutrientTable extends HTMLElement {
@@ -91,6 +97,7 @@ class nutrientTable extends HTMLElement {
     name.setAttribute('type', 'text')
     name.classList.add(styleSheet.classes.name)
     shadow.appendChild(name)
+    this.name = name
 
     // https://en.wikipedia.org/wiki/Proximate
     let constituents = ['moisture', 'protein', 'fat', 'carbohydrate', 'minerals']
@@ -105,6 +112,7 @@ class nutrientTable extends HTMLElement {
       input.setAttribute('type', 'text')
       input.classList.add(styleSheet.classes.value)
       li.appendChild(input)
+      this[v] = input
 
       let unit = document.createElement('span')
       unit.textContent = 'g'
