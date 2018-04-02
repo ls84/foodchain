@@ -5,8 +5,30 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="white">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
   </head>
-  <body class="container">
-    <script src='bundle.js'></script>
+  <body>
+    <script>
+      navigator.serviceWorker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', {scope: '/'})
+        .then((reg) => {
+          if(reg.installing) {
+            console.log('Service worker installing');
+          } else if(reg.waiting) {
+            console.log('Service worker installed');
+          } else if(reg.active) {
+            console.log('Service worker active');
+          }
+        })
+        .catch(function(error) {
+            console.log('Registration failed with ' + error);
+        })
+      }
+    </script>
+    <script type='module'>
+      import {} from '/bundle.js'
+      let n = document.createElement('nutrient-table')
+      document.body.appendChild(n)
+    </script>
   </body>
 </html>
 
