@@ -3,6 +3,7 @@ require('./keyStatus.js')
 
 let k = document.createElement('key-status')
 k.generateNewKey = window.generateNewKey
+k.importKey = window.importKey
 
 let n = document.createElement('nutrient-table')
 document.body.appendChild(k)
