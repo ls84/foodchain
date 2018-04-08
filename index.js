@@ -12,29 +12,13 @@
 // document.body.appendChild(n)
 
 const IndexedDB = require('./indexedDB.js')
-
-(async () => {
-  let database = new IndexedDB('foodChain')
-  
-  await database.update()
-  .then((db) => {
-    let objectStore = db.createObjectStore('food', {keyPath: 'name'})
-    objectStore.createIndex('name', 'name', {unique: true})
-  })
-  .catch((error) => {
-    if (error.name !== 'ConstraintError') throw new Error(error)
-    if (error.name === 'ConstraintError') console.log('food table has already been created')
-  })
-
-  let testData = {
-    name: 'rice',
-    moisture: 50,
-    protein: 12,
-    fat: 30,
-    carbohydrate: 20,
-    minerals: 15,
-    energy: 120
-  }
-
-  await database.insert('food', [testData])
-})()
+let database = new IndexedDB('foodChain')
+database.update()
+.then((db) => {
+  let objectStore = db.createObjectStore('food', {keyPath: 'name'})
+  objectStore.createIndex('name', 'name', {unique: true})
+})
+.catch((error) => {
+  if (error.name !== 'ConstraintError') throw new Error(error)
+  if (error.name === 'ConstraintError') console.log('food table has already been created')
+})

@@ -3,7 +3,6 @@ class IndexedDB {
     if (!window.indexedDB) throw new Error('browser doesn\'t support IndexedDB')
     this.indexedDB = window.indexedDB
     this.name = name
-    this.open = this.open.bind(this)
   }
 
   update () {
@@ -67,3 +66,5 @@ class IndexedDB {
     })
   }
 }
+
+module.exports = IndexedDB
