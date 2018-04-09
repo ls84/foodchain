@@ -5,10 +5,13 @@ require('./keyStatus.js')
 const IndexedDB = require('./indexedDB.js')
 let database = new IndexedDB('foodChain')
 
-// let k = document.createElement('key-status')
-// k.generateNewKey = window.generateNewKey
-// k.importKey = window.importKey
-// document.body.appendChild(k)
+// database.update()
+// .then((db) => {
+//   let objectStore = db.createObjectStore('food', {keyPath: 'name'})
+//   objectStore.createIndex('name', 'name', {unique: true})
+//   objectStore.createIndex('status', 'status', {unique: false})
+//   objectStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+// })
 
 let state = undefined
 
@@ -29,6 +32,9 @@ const foodPage = () => {
         let value = n.data[v]
         if (value || value === 0) data[v] = value
       })
+      data.status = 'CREATED'
+      let now = new Date()
+      data.timeStamp = now.valueOf()
       database.insert('food', [data])
     }
 
@@ -48,6 +54,11 @@ const signPage = () => {
     let k = document.createElement('key-status')
 
     content.appendChild(k)
+
+    database.matchOnly('food', 'status', 'CREATED')
+    .then((data) => {
+      console.log(data)
+    })
 
     state = 'sign'
   }

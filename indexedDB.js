@@ -65,6 +65,45 @@ class IndexedDB {
       throw new Error(error)
     })
   }
+
+  matchOnly (storeName, indexName, key) {
+    return new Promise((resolve, reject) => {
+      let request = this.indexedDB.open(this.name)
+      request.onerror = (error) => {
+        reject(error)
+      }
+      request.onsuccess = (e) => {
+        let db = e.target.result
+        resolve(db)
+      }
+    })
+    .then((db) => {
+      return new Promise((resolve, reject) => {
+        let data = []
+        let transaction = db.transaction([storeName], 'readonly')
+        transaction.oncomplete = (e) => {
+          resolve(data)
+        }
+        transaction.onerror = (e) => {
+          reject(e)
+        }
+        let objectStore = transaction.objectStore(storeName)
+        let index = objectStore.index(indexName)
+        let singleKeyRange = IDBKeyRange.only(key)
+        let cursor = index.openCursor(singleKeyRange)
+        cursor.onsuccess = (e) => {
+          let cursor = e.target.result
+          if (cursor) {
+            data.push(cursor.value)
+            cursor.continue()
+          }
+        }
+      })
+    })
+    .catch((error) => {
+      throw new Error(error)
+    })
+  }
 }
 
 module.exports = IndexedDB
