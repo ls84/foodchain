@@ -41,14 +41,26 @@ class appMenu extends HTMLElement {
 
     let mine = document.createElement('div')
     mine.innerHTML = '<span>m<span/>'
+    mine.addEventListener('click', (e) => {
+      if (!this.minePage) throw new Error('minePage is not ready')
+      this.minePage()
+    })
     container.appendChild(mine)
 
     let food = document.createElement('div')
     food.innerHTML = '<span>f<span/>'
+    food.addEventListener('click', (e) => {
+      if (!this.foodPage) throw new Error('foodPage is not ready')
+      this.foodPage()
+    })
     container.appendChild(food)
 
     let sign = document.createElement('div')
     sign.innerHTML = '<span>s<span/>'
+    sign.addEventListener('click', (e) => {
+      if (!this.signPage) throw new Error('signPage is not ready')
+      this.signPage()
+    })
     container.appendChild(sign)
   }
 }
