@@ -60,7 +60,13 @@ const styles = {
       'padding-left': '15px',
       'line-height': '30px'
     }
+  },
+  'create': {
+    'float': 'right',
+    'font-size': '16px',
+    'margin-top': '24px'
   }
+
 }
 
 const styleSheet = jss.createStyleSheet(styles)
@@ -74,6 +80,7 @@ const dataBinder = function () {
   const get = (t, p, r) => {
     let value = this[p].value
     if (value === '') return undefined
+    if (p === 'name') return value
     if (['moisture', 'protein', 'fat', 'carbohydrate', 'minerals', 'energy'].some((v) => p === v)) value = Number(value)
     if (isNaN(value)) throw new Error(`${p} is not a number`)
 
@@ -148,6 +155,15 @@ class nutrientTable extends HTMLElement {
     unit.textContent = 'kcal'
     energy.appendChild(unit)
     shadow.appendChild(energy)
+
+    let create = document.createElement('button')
+    create.innerText = 'Create'
+    create.classList.add(styleSheet.classes.create)
+    create.addEventListener('click', (e) => {
+      if (!this.create) throw new Error('create function is not ready')
+      this.create()
+    })
+    shadow.appendChild(create)
   }
 
   connectedCallback() {
