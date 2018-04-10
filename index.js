@@ -1,6 +1,7 @@
 require('./appMenu.js')
 require('./nutrientTable.js')
 require('./keyStatus.js')
+require('./transactionReview.js')
 
 const IndexedDB = require('./indexedDB.js')
 let database = new IndexedDB('foodChain')
@@ -51,13 +52,14 @@ const signPage = () => {
       content.removeChild(content.lastChild)
     }
 
-    let k = document.createElement('key-status')
-
-    content.appendChild(k)
-
     database.matchOnly('food', 'status', 'CREATED')
     .then((data) => {
-      console.log(data)
+      let transaction = document.createElement('transaction-review')
+      transaction.updateData(data.map((v) => {
+        v.type = 'food'
+        return v
+      }))
+      content.appendChild(transaction)
     })
 
     state = 'sign'
@@ -75,6 +77,7 @@ const minePage = () => {
 }
 
 let content = document.createElement('div')
+content.classList.add('content')
 document.body.appendChild(content)
 
 let m = document.createElement('app-menu')
