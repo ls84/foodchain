@@ -104,6 +104,35 @@ class IndexedDB {
       throw new Error(error)
     })
   }
+
+  updateAll (storeName, data) {
+    return new Promise((resolve, reject) => {
+      let request = this.indexedDB.open(this.name)
+      request.onerror = (error) => {
+        reject(error)
+      }
+      request.onsuccess = (e) => {
+        let db = e.target.result
+        resolve(db)
+      }
+    })
+    .then((db) => {
+      let transaction = db.transaction([storeName], 'readwrite')
+      let objectStore = transaction.objectStore(storeName)
+      let promises = data.map((v) => {
+        return new Promise((resolve, reject) => {
+          let update = objectStore.put(v)
+          update.onerror = (e) => {
+            reject(e)
+          }
+          update.onsuccess = (e) => {
+            resolve(true) 
+          }
+        })
+      })
+      return Promise.all(promises)
+    })
+  }
 }
 
 module.exports = IndexedDB

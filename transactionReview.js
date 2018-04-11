@@ -50,8 +50,14 @@ class transaction extends HTMLElement {
       this.shadow.appendChild(container)
     })
 
+    // build batch
+
     let button = document.createElement('button')
     button.innerText = 'Sign'
+    button.addEventListener('click', (e) => {
+      if (!this.sign) throw new Error('sign function is not ready')
+      this.sign(data)
+    })
     button.classList.add(styleSheet.classes.button)
     this.shadow.appendChild(button)
   }

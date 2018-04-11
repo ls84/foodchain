@@ -59,6 +59,20 @@ const signPage = () => {
         v.type = 'food'
         return v
       }))
+      transaction.sign = (data) => {
+        // submit to blockchain
+        let dataChangedStatus = data.map((v) => {
+          v.status = 'SUBMITTED'
+          return v
+        })
+        database.updateAll('food', dataChangedStatus)
+        .then((data) => {
+          console.log(data)
+        })
+        .catch((e) => {
+          console.log(e)
+        })
+      }
       content.appendChild(transaction)
     })
 
