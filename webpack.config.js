@@ -13,9 +13,9 @@ const config = {
     host: '0.0.0.0',
     port: 8000,
     https: {
-      key: fs.readFileSync('./cert/server.key'),
-      cert: fs.readFileSync('./cert/server.crt'),
-      ca: fs.readFileSync('./cert/ca.crt')
+      key: fs.readFileSync('./cert/localhost.key'),
+      cert: fs.readFileSync('./cert/localhost.crt'),
+      ca: fs.readFileSync('./cert/localhost.crt')
     }
   },
   watch: true,

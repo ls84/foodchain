@@ -1,6 +1,6 @@
 version: '3'
 services:
-  sawtoothsign:
+  foodchain:
     image: node:latest
     container_name: foodchain
     volumes:

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack-dev-server --disableHostCheck"
+    "dev": "webpack-dev-server"
   },
   "author": "Liu Shuo",
   "license": "ISC",
