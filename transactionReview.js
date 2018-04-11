@@ -22,6 +22,7 @@ const styleRules = {
     'margin-left': 'auto',
     'margin-right': 'auto',
     'margin-top': '20px',
+    'margin-bottom': '20px',
     'font-size': '20px'
   }
 }
@@ -37,29 +38,53 @@ class transaction extends HTMLElement {
     this.shadow.appendChild(style)
   }
 
-  updateData (data) {
-    data.forEach((v) => {
-      let container = document.createElement('div')
-      container.classList.add(styleSheet.classes.container)
+  update (submitted, created) {
+    if ( submitted.length > 0 ) {
+      submitted.forEach((v) => {
+        let container = document.createElement('div')
+        container.classList.add(styleSheet.classes.container)
 
-      let type = document.createElement('div')
-      type.innerHTML = `<span>${v.type}: ${v.name}</span>`
-      type.classList.add(styleSheet.classes.type)
-      container.appendChild(type)
+        let type = document.createElement('div')
+        type.innerHTML = `${v.name}</span>`
+        type.classList.add(styleSheet.classes.type)
+        container.appendChild(type)
 
-      this.shadow.appendChild(container)
-    })
+        this.shadow.appendChild(container)
+      })
 
-    // build batch
+      let checkButton = document.createElement('button')
+      checkButton.innerText = 'Check'
+      // TODO: 
+      // checkButton.addEventListener('click', (e) => {
+      //   if (!this.check) throw new Error('sign function is not ready')
+      //   this.check(batchStatus)
+      // })
+      checkButton.classList.add(styleSheet.classes.button)
+      this.shadow.appendChild(checkButton)
+    }
 
-    let button = document.createElement('button')
-    button.innerText = 'Sign'
-    button.addEventListener('click', (e) => {
-      if (!this.sign) throw new Error('sign function is not ready')
-      this.sign(data)
-    })
-    button.classList.add(styleSheet.classes.button)
-    this.shadow.appendChild(button)
+    if ( created.length > 0 ) {
+      created.forEach((v) => {
+        let container = document.createElement('div')
+        container.classList.add(styleSheet.classes.container)
+
+        let type = document.createElement('div')
+        type.innerHTML = `${v.name}</span>`
+        type.classList.add(styleSheet.classes.type)
+        container.appendChild(type)
+
+        this.shadow.appendChild(container)
+      })
+
+      let submitButton = document.createElement('button')
+      submitButton.innerText = 'Submit'
+      submitButton.addEventListener('click', (e) => {
+        if (!this.sign) throw new Error('sign function is not ready')
+        this.sign(created)
+      })
+      submitButton.classList.add(styleSheet.classes.button)
+      this.shadow.appendChild(submitButton)
+    }
   }
 }
 

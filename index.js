@@ -6,13 +6,17 @@ require('./transactionReview.js')
 const IndexedDB = require('./indexedDB.js')
 let database = new IndexedDB('foodChain')
 
-// database.update()
-// .then((db) => {
-//   let objectStore = db.createObjectStore('food', {keyPath: 'name'})
-//   objectStore.createIndex('name', 'name', {unique: true})
-//   objectStore.createIndex('status', 'status', {unique: false})
-//   objectStore.createIndex('timeStamp', 'timeStamp', {unique: false})
-// })
+database.update()
+.then((db) => {
+  let objectStore = db.createObjectStore('food', {keyPath: 'name'})
+  objectStore.createIndex('name', 'name', {unique: true})
+  objectStore.createIndex('status', 'status', {unique: false})
+  objectStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+})
+.catch((error) => {
+  if (error.name === 'ConstraintError') console.log('objectStore already created')
+  if (error.name !== 'ConstraintError') throw new Error(error)
+})
 
 let state = undefined
 
@@ -52,28 +56,23 @@ const signPage = () => {
       content.removeChild(content.lastChild)
     }
 
-    database.matchOnly('food', 'status', 'CREATED')
+    Promise.all([database.matchOnly('food', 'status', 'SUBMITTED'), database.matchOnly('food', 'status', 'CREATED')])
     .then((data) => {
-      let transaction = document.createElement('transaction-review')
-      transaction.updateData(data.map((v) => {
-        v.type = 'food'
-        return v
-      }))
-      transaction.sign = (data) => {
-        // submit to blockchain
-        let dataChangedStatus = data.map((v) => {
-          v.status = 'SUBMITTED'
-          return v
-        })
-        database.updateAll('food', dataChangedStatus)
-        .then((data) => {
-          console.log(data)
+      console.log(data)
+      let transactionReview = document.createElement('transaction-review')
+      transactionReview.sign = (data) => {
+        // TODO: submit to blockchain
+        data.forEach((v, i, a) => { a[i].status = 'SUBMITTED' })
+        database.updateAll('food', data)
+        .then((result) => {
+          console.log(result)
         })
         .catch((e) => {
           console.log(e)
         })
       }
-      content.appendChild(transaction)
+      transactionReview.update(data[0], data[1])
+      content.appendChild(transactionReview)
     })
 
     state = 'sign'
