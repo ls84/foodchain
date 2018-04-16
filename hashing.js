@@ -8,7 +8,9 @@ const sha256Hex = function (x) {
   return crypto.subtle.digest('SHA-256', buffer)
   .then((buffer) => {
     let hex = new Uint8Array(buffer)
-    .reduce((p,c) => p.toString(16) + c.toString(16).padStart(2,'0'))
+    .reduce((p,c) => {
+      return p + c.toString(16).padStart(2,'0')
+    }, '')
 
     return Promise.resolve(hex)
   })
