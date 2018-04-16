@@ -2,6 +2,7 @@ require('./appMenu.js')
 require('./nutrientTable.js')
 require('./keyStatus.js')
 require('./transactionReview.js')
+const {sha256Hex} = require('./hashing.js')
 
 const IndexedDB = require('./indexedDB.js')
 let database = new IndexedDB('foodChain')
@@ -98,4 +99,3 @@ m.foodPage = foodPage
 m.signPage = signPage
 m.minePage = minePage
 document.body.appendChild(m)
-
