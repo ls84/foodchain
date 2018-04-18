@@ -7,6 +7,7 @@ const {sha256Hex} = require('./hashing.js')
 const IndexedDB = require('./indexedDB.js')
 let database = new IndexedDB('foodChain')
 
+// TODO: do not increase version everytime page reloads
 database.update()
 .then((db) => {
   let objectStore = db.createObjectStore('food', {keyPath: 'name'})
@@ -18,6 +19,10 @@ database.update()
   if (error.name === 'ConstraintError') console.log('objectStore already created')
   if (error.name !== 'ConstraintError') throw new Error(error)
 })
+
+let key = window.importKey()
+let sawtoothSign = new window.SawtoothSign(key)
+sawtoothSign.init()
 
 let state = undefined
 
@@ -41,7 +46,26 @@ const foodPage = () => {
       data.status = 'CREATED'
       let now = new Date()
       data.timeStamp = now.valueOf()
-      database.insert('food', [data])
+
+      sha256Hex(data.name)
+      .then((hex) => {
+        data.address = '100000' + hex
+        let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
+        header.inputs = [data.address]
+        header.outputs = [data.address] 
+        
+        let payload = { 'name': data.name }
+        constituents.forEach((v) => {
+          if (data[v]) payload[v] = data[v]
+        })
+
+        console.log(header, payload)
+        return sawtoothSign.buildTransaction(header, payload)
+      })
+      .then((transaction) => {
+        data.transaction = transaction
+        database.insert('food', [data])
+      })
     }
 
     content.appendChild(n)
@@ -63,14 +87,26 @@ const signPage = () => {
       let transactionReview = document.createElement('transaction-review')
       transactionReview.sign = (data) => {
         // TODO: submit to blockchain
-        data.forEach((v, i, a) => { a[i].status = 'SUBMITTED' })
-        database.updateAll('food', data)
-        .then((result) => {
-          console.log(result)
+        let transactions = data.map(v => v.transaction)
+        console.log(transactions)
+        sawtoothSign.buildBatch(transactions)
+        .then((batch) => {
+          return sawtoothSign.send([batch], 'https://bismuth83.net/batches')
         })
-        .catch((e) => {
-          console.log(e)
+        .then((response) => {
+          console.log(response) 
         })
+        .catch((error) => {
+          console.log(error)
+        })
+        // data.forEach((v, i, a) => { a[i].status = 'SUBMITTED' })
+        // database.updateAll('food', data)
+        // .then((result) => {
+        //   console.log(result)
+        // })
+        // .catch((e) => {
+        //   console.log(e)
+        // })
       }
       transactionReview.update(data[0], data[1])
       content.appendChild(transactionReview)
