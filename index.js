@@ -69,7 +69,7 @@ const foodPage = () => {
       })
       .then((transaction) => {
         data.transaction = transaction
-        database.insert('food', [data])
+        database.insertAll('food', [data])
       })
     }
 
@@ -138,7 +138,7 @@ const signPage = () => {
             delete v.batchID
             return v
           })
-          return Promise.all([database.insert('favourite', committedData), database.deleteAll('food', committedData.map(v => v.name))])
+          return Promise.all([database.insertAll('favourite', committedData), database.deleteAll('food', committedData.map(v => v.name))])
         })
         .then((result) => {
           console.log('committed', result)

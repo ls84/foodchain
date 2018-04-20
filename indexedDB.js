@@ -33,7 +33,7 @@ class IndexedDB {
     })
   }
 
-  insert (storeName, data) {
+  insertAll (storeName, data) {
     return new Promise((resolve, reject) => {
       let request = this.indexedDB.open(this.name)
       request.onerror = (error) => {
@@ -45,25 +45,21 @@ class IndexedDB {
       }
     })
     .then((db) => {
-      // TODO: return Promise.all
       let transaction = db.transaction([storeName], 'readwrite')
-      transaction.oncomplete = (e) => {
-        console.log('insert done')
-      }
-      transaction.onerror = (e) => {
-        console.log('error', e)
-      }
-      
       let objectStore = transaction.objectStore(storeName)
-      data.forEach((d) => {
-        let request = objectStore.add(d)
-        request.onsuccess = (e) => {
-          console.log('insert data:', d) 
-        }
+      let promises = data.map((v) => {
+        return new Promise((resolve, reject) => {
+          let request = objectStore.add(v)
+          request.onerror = (e) => {
+            reject(e)
+          }
+          request.onsuccess = (e) => {
+            resolve(true)
+          }
+        })
       })
-    })
-    .catch((error) => {
-      throw new Error(error)
+
+      return Promise.all(promises)
     })
   }
 
