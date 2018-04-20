@@ -83,31 +83,67 @@ const signPage = () => {
 
     Promise.all([database.matchOnly('food', 'status', 'SUBMITTED'), database.matchOnly('food', 'status', 'CREATED')])
     .then((data) => {
-      console.log(data)
       let transactionReview = document.createElement('transaction-review')
       transactionReview.sign = (data) => {
-        // TODO: submit to blockchain
         let transactions = data.map(v => v.transaction)
-        console.log(transactions)
         sawtoothSign.buildBatch(transactions)
         .then((batch) => {
           return sawtoothSign.send([batch], 'https://bismuth83.net/batches')
         })
         .then((response) => {
-          console.log(response) 
+          let submittedData = data.map((v) => {
+            let params = (new URL(response.link)).searchParams
+            let batchID = params.get('id')
+            v.batchID = batchID
+            v.status = 'SUBMITTED'
+            return v
+          })
+          return database.updateAll('food', submittedData)
+        })
+        .then((updated) => {
+          console.log('submitted', updated)
+          state = null
+          signPage()
         })
         .catch((error) => {
           console.log(error)
         })
-        // data.forEach((v, i, a) => { a[i].status = 'SUBMITTED' })
-        // database.updateAll('food', data)
-        // .then((result) => {
-        //   console.log(result)
-        // })
-        // .catch((e) => {
-        //   console.log(e)
-        // })
       }
+
+      transactionReview.check = (data) => {
+        let batchIDs = data.map(v => v.batchID)
+        // TODO: should be a set, so there is no duplicates
+        console.log(batchIDs)
+        window.fetch('https://bismuth83.net/batch_statuses', {
+          body: JSON.stringify(batchIDs),
+          headers: {'Content-Type': 'application/json'},
+          method: 'POST',
+          mode: 'cors'
+        })
+        .then((response) => {
+          if (!response.ok) return Promise.reject(new Error('response is not okay'))
+          return response.json()
+        })
+        .then((json) => {
+          let commitedBatch = json.data.filter(v => v.status === 'COMMITTED')
+          let committedData = data.filter(v => commitedBatch.some(b => b.id === v.batchID))
+          .map((v) => {
+            v.status = 'COMMITTED'
+            return v
+          })
+          // TODO: should add to favourite sotre
+          return database.updateAll('food', committedData)
+        })
+        .then((result) => {
+          console.log('committed', result)
+          state = null
+          signPage()
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+      }
+
       transactionReview.update(data[0], data[1])
       content.appendChild(transactionReview)
     })

@@ -54,11 +54,10 @@ class transaction extends HTMLElement {
 
       let checkButton = document.createElement('button')
       checkButton.innerText = 'Check'
-      // TODO: 
-      // checkButton.addEventListener('click', (e) => {
-      //   if (!this.check) throw new Error('sign function is not ready')
-      //   this.check(batchStatus)
-      // })
+      checkButton.addEventListener('click', (e) => {
+        if (!this.check) throw new Error('check function is not ready')
+        this.check(submitted)
+      })
       checkButton.classList.add(styleSheet.classes.button)
       this.shadow.appendChild(checkButton)
     }
