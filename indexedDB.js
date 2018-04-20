@@ -45,6 +45,7 @@ class IndexedDB {
       }
     })
     .then((db) => {
+      // TODO: return Promise.all
       let transaction = db.transaction([storeName], 'readwrite')
       transaction.oncomplete = (e) => {
         console.log('insert done')
@@ -122,6 +123,35 @@ class IndexedDB {
       let promises = data.map((v) => {
         return new Promise((resolve, reject) => {
           let update = objectStore.put(v)
+          update.onerror = (e) => {
+            reject(e)
+          }
+          update.onsuccess = (e) => {
+            resolve(true) 
+          }
+        })
+      })
+      return Promise.all(promises)
+    })
+  }
+
+  deleteAll (storeName, key) {
+    return new Promise((resolve, reject) => {
+      let request = this.indexedDB.open(this.name)
+      request.onerror = (error) => {
+        reject(error)
+      }
+      request.onsuccess = (e) => {
+        let db = e.target.result
+        resolve(db)
+      }
+    })
+    .then((db) => {
+      let transaction = db.transaction([storeName], 'readwrite')
+      let objectStore = transaction.objectStore(storeName)
+      let promises = key.map((v) => {
+        return new Promise((resolve, reject) => {
+          let update = objectStore.delete(v)
           update.onerror = (e) => {
             reject(e)
           }

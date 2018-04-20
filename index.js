@@ -10,10 +10,15 @@ let database = new IndexedDB('foodChain')
 // TODO: do not increase version everytime page reloads
 database.update()
 .then((db) => {
-  let objectStore = db.createObjectStore('food', {keyPath: 'name'})
-  objectStore.createIndex('name', 'name', {unique: true})
-  objectStore.createIndex('status', 'status', {unique: false})
-  objectStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+  let foodStore = db.createObjectStore('food', {keyPath: 'name'})
+  foodStore.createIndex('name', 'name', {unique: true})
+  foodStore.createIndex('status', 'status', {unique: false})
+  foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+
+  let favouriteStore = db.createObjectStore('favourite', {keyPath: 'name'})
+  favouriteStore.createIndex('name', 'name', {unique: true})
+  favouriteStore.createIndex('address', 'address', {unique: true})
+  favouriteStore.createIndex('timeStamp', 'timeStamp', {unique: false})
 })
 .catch((error) => {
   if (error.name === 'ConstraintError') console.log('objectStore already created')
@@ -128,11 +133,12 @@ const signPage = () => {
           let commitedBatch = json.data.filter(v => v.status === 'COMMITTED')
           let committedData = data.filter(v => commitedBatch.some(b => b.id === v.batchID))
           .map((v) => {
-            v.status = 'COMMITTED'
+            delete v.status
+            delete v.transaction
+            delete v.batchID
             return v
           })
-          // TODO: should add to favourite sotre
-          return database.updateAll('food', committedData)
+          return Promise.all([database.insert('favourite', committedData), database.deleteAll('food', committedData.map(v => v.name))])
         })
         .then((result) => {
           console.log('committed', result)
