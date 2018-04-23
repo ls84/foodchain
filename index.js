@@ -2,6 +2,8 @@ require('./appMenu.js')
 require('./nutrientTable.js')
 require('./keyStatus.js')
 require('./transactionReview.js')
+require('./foodSearch.js')
+
 const {sha256Hex} = require('./hashing.js')
 
 const IndexedDB = require('./indexedDB.js')
@@ -163,6 +165,29 @@ const minePage = () => {
     while (content.hasChildNodes()) {
       content.removeChild(content.lastChild)
     }
+
+    let favouriteData = undefined
+    database.getAll('favourite')
+    .then((data) => {
+      favouriteData = data
+      console.log(favouriteData)
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+
+    let foodSearch = document.createElement('food-search')
+    foodSearch.search = function (value) {
+      let regexp = new RegExp(value)
+      if (favouriteData) {
+        let matched = favouriteData.filter((v) => {
+          return regexp.test(v.name)
+        })
+        
+        if (matched.length > 0) this.previewResults(matched)
+      }
+    }
+    content.appendChild(foodSearch)
 
     state = 'mine'
   }

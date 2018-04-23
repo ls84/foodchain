@@ -159,6 +159,35 @@ class IndexedDB {
       return Promise.all(promises)
     })
   }
+
+  getAll (storeName) {
+    return new Promise((resolve, reject) => {
+      let request = this.indexedDB.open(this.name)
+      request.onerror = (error) => {
+        reject(error)
+      }
+      request.onsuccess = (e) => {
+        let db = e.target.result
+        resolve(db)
+      }
+    })
+    .then((db) => {
+      let transaction = db.transaction([storeName], 'readonly')
+      let objectStore = transaction.objectStore(storeName)
+      return new Promise((resolve, reject) => {
+        let all = objectStore.getAll()
+        all.onerror = (e) => {
+          reject(e) 
+        }
+        all.onsuccess = (e) => {
+          resolve(e.target.result) 
+        }
+      })
+    })
+    .catch((error) => {
+      return Promise.reject(error)
+    })
+  }
 }
 
 module.exports = IndexedDB
