@@ -4,12 +4,21 @@ jss.setup(preset())
 jss.setup({createGenerateClassName: () => (rule, sheet) => rule.key})
 
 const styles = {
-  'input': {
+  'container': {
     'width': 'calc( 100vw - 16px )',
+    'height': '35px',
+    'display': 'grid',
+    'grid-template-columns': 'auto 35px'
+  },
+  'input': {
     'height': '35px',
     'background-color': 'rgb(245,245,245)',
     'outline': 'none',
     'border': 'none'
+  },
+  'add': {
+    'line-height': '35px',
+    'text-align': 'center'
   },
   'preview': {
     'width': 'calc( 100vw - 16px )',
@@ -39,17 +48,27 @@ class foodSearch extends HTMLElement {
     style.textContent = styleSheet.toString()
     this.shadow.appendChild(style)
 
+    this.container = document.createElement('div')
+    this.container.classList.add(styleSheet.classes.container)
+    this.shadow.appendChild(this.container)
+
     this.input = document.createElement('input')
     this.input.setAttribute('type', 'text')
     this.input.addEventListener('keyup', (e) => {
       if (!this.search) throw new Error('search function is not ready')
       this.search(this.input.value)
     })
-
-
-
     this.input.classList.add(styleSheet.classes.input)
-    this.shadow.appendChild(this.input)
+    this.container.appendChild(this.input)
+
+    this.add = document.createElement('div')
+    this.add.innerHTML = '<span>a</span>'
+    this.add.addEventListener('click', (e) => {
+      if (!this.add) throw new Error('add function is not ready')
+      this.add(this.input.value)
+    })
+    this.add.classList.add(styleSheet.classes.add)
+    this.container.appendChild(this.add)
 
     this.preview = document.createElement('ul')
     this.preview.classList.add(styleSheet.classes.preview)

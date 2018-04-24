@@ -170,7 +170,6 @@ const minePage = () => {
     database.getAll('favourite')
     .then((data) => {
       favouriteData = data
-      console.log(favouriteData)
     })
     .catch((error) => {
       console.log(error)
@@ -186,6 +185,11 @@ const minePage = () => {
         
         if (matched.length > 0) this.previewResults(matched)
       }
+    }
+
+    foodSearch.add = function (value) {
+      // should assert data has valid address
+      console.log(value)
     }
     content.appendChild(foodSearch)
 
