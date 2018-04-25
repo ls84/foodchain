@@ -61,10 +61,12 @@ const foodPage = () => {
         header.inputs = [data.address]
         header.outputs = [data.address] 
         
-        let payload = { 'name': data.name }
+        let food = { 'name': data.name }
         constituents.forEach((v) => {
-          if (data[v]) payload[v] = data[v]
+          if (data[v]) food[v] = data[v]
         })
+
+        let payload = { action: 'create', food}
 
         console.log(header, payload)
         return sawtoothSign.buildTransaction(header, payload)
@@ -160,6 +162,13 @@ const signPage = () => {
   }
 }
 
+const b64ToBuffer = (base64) => {
+  let binaryString = window.atob(base64)
+  return (new Uint8Array(binaryString.length))
+  .map((v, i) => binaryString.charCodeAt(i))
+  .buffer
+}
+
 const minePage = () => {
   if (state !== 'mine') {
     while (content.hasChildNodes()) {
@@ -190,6 +199,25 @@ const minePage = () => {
     foodSearch.add = function (value) {
       // should assert data has valid address
       console.log(value)
+      database.matchOnly('favourite', 'name', value)
+      .then((data) => {
+        let address = data[0].address
+        return window.fetch(`https://bismuth83.net/state/${address}`, {
+          headers: {'Content-Type': 'application/json'},
+          method: 'GET',
+          mode: 'cors'
+        })
+      })
+      .then((response) => {
+        if (!response.ok) return Promise.reject(new Error('response is not okay'))
+        return response.json()
+      })
+      .then((json) => {
+        console.log(json)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
     }
     content.appendChild(foodSearch)
 
