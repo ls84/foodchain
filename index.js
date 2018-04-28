@@ -3,6 +3,7 @@ require('./nutrientTable.js')
 require('./keyStatus.js')
 require('./transactionReview.js')
 require('./foodSearch.js')
+require('./foodReview.js')
 
 const {sha256Hex} = require('./hashing.js')
 
@@ -17,10 +18,11 @@ database.update()
   foodStore.createIndex('status', 'status', {unique: false})
   foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
 
-  let favouriteStore = db.createObjectStore('favourite', {keyPath: 'name'})
-  favouriteStore.createIndex('name', 'name', {unique: true})
-  favouriteStore.createIndex('address', 'address', {unique: true})
-  favouriteStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+  let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetime'})
+  consumptionStore.createIndex('datetime', 'datetime', {unique: true})
+  consumptionStore.createIndex('status', 'status', {unique: false})
+  consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+
 })
 .catch((error) => {
   if (error.name === 'ConstraintError') console.log('objectStore already created')
@@ -50,7 +52,7 @@ const foodPage = () => {
         let value = n.data[v]
         if (value || value === 0) data[v] = value
       })
-      data.status = 'CREATED'
+      data.status = 'SIGNED'
       let now = new Date()
       data.timeStamp = now.valueOf()
 
@@ -73,9 +75,15 @@ const foodPage = () => {
       })
       .then((transaction) => {
         data.transaction = transaction
-        database.insertAll('food', [data])
+        return database.insertAll('food', [data])
       })
-    }
+      .then((result) => {
+        console.log(result)
+      })
+      .catch((error) => {
+        console.log(error) 
+      })
+    } 
 
     content.appendChild(n)
 
@@ -90,7 +98,7 @@ const signPage = () => {
       content.removeChild(content.lastChild)
     }
 
-    Promise.all([database.matchOnly('food', 'status', 'SUBMITTED'), database.matchOnly('food', 'status', 'CREATED')])
+    Promise.all([database.matchOnly('food', 'status', 'SUBMITTED'), database.matchOnly('food', 'status', 'SIGNED')])
     .then((data) => {
       let transactionReview = document.createElement('transaction-review')
       transactionReview.sign = (data) => {
@@ -122,7 +130,7 @@ const signPage = () => {
       transactionReview.check = (data) => {
         let batchIDs = data.map(v => v.batchID)
         // TODO: should be a set, so there is no duplicates
-        console.log(batchIDs)
+        console.log('confirming batch:', batchIDs)
         window.fetch('https://bismuth83.net/batch_statuses', {
           body: JSON.stringify(batchIDs),
           headers: {'Content-Type': 'application/json'},
@@ -137,12 +145,10 @@ const signPage = () => {
           let commitedBatch = json.data.filter(v => v.status === 'COMMITTED')
           let committedData = data.filter(v => commitedBatch.some(b => b.id === v.batchID))
           .map((v) => {
-            delete v.status
-            delete v.transaction
-            delete v.batchID
+            v.status = 'COMMITTED'
             return v
           })
-          return Promise.all([database.insertAll('favourite', committedData), database.deleteAll('food', committedData.map(v => v.name))])
+          return database.updateAll('food', committedData)
         })
         .then((result) => {
           console.log('committed', result)
@@ -169,6 +175,54 @@ const b64ToBuffer = (base64) => {
   .buffer
 }
 
+const timeNow = () => {
+  let datetime = new Date()
+  let options = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    weekday: 'long',
+    hour12: false,
+    timeZone: 'Asia/Shanghai'
+  }
+  return {
+    'string': new Intl.DateTimeFormat('zh-Hans-CN', options).format(datetime),
+    'value': datetime.valueOf()
+  }
+}
+
+let myAddress = '100000' + key.getPublic().encodeCompressed('hex').substr(2,64)
+window.fetch(`https://bismuth83.net/state/${myAddress}`, {
+  headers: {'Content-Type': 'application/json'},
+  method: 'GET',
+  mode: 'cors'
+})
+.then((response) => {
+  if (!response.ok) return Promise.reject(new Error('response is not okay'))
+  return response.json()
+})
+.then((json) => {
+  let data = cbor.decode(b64ToBuffer(json.data))
+  console.log(data)
+  updateData = data.map((v) => {
+    return {
+      datetime: v.datetime,
+      food: v.food,
+      timeStamp: v.datetime,
+      status: 'COMMITTED'
+    }
+  })
+  return database.updateAll('consumption', updateData)
+})
+.then((result) => {
+  console.log('synced my address', result)
+})
+.catch((error) => {
+  console.log(result)
+})
+
 const minePage = () => {
   if (state !== 'mine') {
     while (content.hasChildNodes()) {
@@ -176,9 +230,10 @@ const minePage = () => {
     }
 
     let favouriteData = undefined
-    database.getAll('favourite')
+    database.matchOnly('food', 'status', 'COMMITTED')
     .then((data) => {
       favouriteData = data
+      console.log('fabourite data is ready')
     })
     .catch((error) => {
       console.log(error)
@@ -191,35 +246,120 @@ const minePage = () => {
         let matched = favouriteData.filter((v) => {
           return regexp.test(v.name)
         })
-        
+    
         if (matched.length > 0) this.previewResults(matched)
       }
     }
 
     foodSearch.add = function (value) {
-      // should assert data has valid address
-      console.log(value)
-      database.matchOnly('favourite', 'name', value)
+      let consumeData
+      database.matchOnly('food', 'name', value)
       .then((data) => {
-        let address = data[0].address
-        return window.fetch(`https://bismuth83.net/state/${address}`, {
-          headers: {'Content-Type': 'application/json'},
-          method: 'GET',
-          mode: 'cors'
+        consumeData = data[0]
+        let foodAddress = data[0].address
+        let signerAddress = '100000' + key.getPublic().encodeCompressed('hex').substr(2,64)
+        let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
+        header.inputs = [signerAddress]
+        header.outputs = [signerAddress]
+
+        let time = timeNow()
+        let food = { name: consumeData.name, address: foodAddress }
+        let payload = { action: 'consume', datetime: time.value, food: [food] }
+
+        consumeData.timeStamp = time.value
+        consumeData.timeString = time.string
+        consumeData.datetime = time.value
+
+        console.log(header, payload)
+
+        return sawtoothSign.buildTransaction(header, payload)
+      })
+      .then((transaction) => {
+        consumeData.transaction = transaction
+        consumeData.status = 'SIGNED'
+        return database.insertAll('consumption', [consumeData])
+      })
+      .then((result) => {
+        state = null
+        minePage()
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+    }
+
+    content.appendChild(foodSearch)
+    
+    let foodReview = document.createElement('food-review')
+    foodReview.submit = function (signed) {
+      let transactions = signed.map(v => v.transaction) 
+      sawtoothSign.buildBatch(transactions)
+      .then((batch) => {
+        return sawtoothSign.send([batch], 'https://bismuth83.net/batches')
+      })
+      .then((response) => {
+        let params = (new URL(response.link)).searchParams
+        let batchID = params.get('id')
+        let submittedData = signed.map(v => {
+          v.batchID = batchID
+          v.status = 'SUBMITTED'
+          return v
         })
+        return database.updateAll('consumption', submittedData)
+      })
+      .then((result) => {
+        console.log('submitted', result)
+        state = null
+        minePage()
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+    }
+
+    foodReview.confirm = function (submitted) {
+      let batchIDs = submitted.map(v => v.batchID)
+      // TODO: should be a set, so there is no duplicates
+      console.log('confirming batch:', batchIDs)
+      window.fetch('https://bismuth83.net/batch_statuses', {
+        body: JSON.stringify(batchIDs),
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        mode: 'cors'
       })
       .then((response) => {
         if (!response.ok) return Promise.reject(new Error('response is not okay'))
         return response.json()
       })
       .then((json) => {
-        console.log(json)
+        let commitedBatch = json.data.filter(v => v.status === 'COMMITTED')
+        let committedData = submitted.filter(v => commitedBatch.some(b => b.id === v.batchID))
+        .map((v) => {
+          v.status = 'COMMITTED'
+          return v
+        })
+        return database.updateAll('consumption', committedData)
+      })
+      .then((result) => {
+        console.log('committed', result)
+        state = null
+        minePage()
       })
       .catch((error) => {
         console.log(error)
       })
     }
-    content.appendChild(foodSearch)
+
+    content.appendChild(foodReview)
+
+    database.getAll('consumption')
+    .then((data) => {
+      let committed = data.filter(v => v.status === 'COMMITTED')
+      let submitted = data.filter(v => v.status === 'SUBMITTED')
+      let signed = data.filter(v => v.status === 'SIGNED')
+      console.log(committed, submitted, signed)
+      foodReview.update(committed, submitted, signed)
+    })
 
     state = 'mine'
   }

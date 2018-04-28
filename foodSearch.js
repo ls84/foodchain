@@ -8,24 +8,30 @@ const styles = {
     'width': 'calc( 100vw - 16px )',
     'height': '35px',
     'display': 'grid',
-    'grid-template-columns': 'auto 35px'
+    'grid-template-columns': 'auto 35px',
   },
   'input': {
     'height': '35px',
     'background-color': 'rgb(245,245,245)',
     'outline': 'none',
-    'border': 'none'
+    'border': 'none',
+    'font-family': 'sans-serif',
+    'font-size': '18px'
   },
   'add': {
     'line-height': '35px',
     'text-align': 'center'
   },
   'preview': {
+    'position': 'absolute',
     'width': 'calc( 100vw - 16px )',
     'padding-left': '0px',
     'margin': '0',
     'list-style-type': 'none',
     'visibility': 'hidden',
+    'font-family': 'sans-serif',
+    'font-size': '16px',
+    'background-color': 'white',
     '&.display': {
       'visibility': 'visible'
     }
@@ -37,7 +43,7 @@ const styles = {
   }
 }
 
-const styleSheet = jss.createStyleSheet(styles) 
+const styleSheet = jss.createStyleSheet(styles)
 
 class foodSearch extends HTMLElement {
   constructor () {
