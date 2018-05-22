@@ -22,7 +22,7 @@ const blurInput = ClientFunction(() => {
 test.before(async t => {
   await t.typeText(shadow.find('.nameInput'), 'apple')
 })
-('Typed "apple"', async t => {
+('Type "apple"', async t => {
   await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
   .expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector did not unhidden itself')
 })
@@ -33,7 +33,7 @@ test.before(async t => {
   await blurInput()
   await t.typeText(nameInput, 'banana', { replace: true })
 })
-('Tries To Change Name to "banana"', async t => {
+('Change name from "apple" to "banana"', async t => {
   await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
   .expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector did not unhidden itself')
 })
@@ -43,7 +43,7 @@ test.skip.before(async t => {
   await t.typeText(nameInput, 'apple')
   .pressKey('backspace backspace backspace backspace backspace' )
 })
-('Cleared Name', async t => {
+('Clear name', async t => {
   await t.expect(await constituentSelector.exists).notOk('constituentSelector appeared on empty input')
 })
 
@@ -52,7 +52,21 @@ test.before(async t => {
   await t.typeText(nameInput, 'apple')
   .typeText(nameInput, ' ', { replace: true })
 })
-('Entered Empty Characters', async t => {
+('Enter empty characters', async t => {
   await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
   .expect(await shadow.find('#selector').hasAttribute('hidden')).ok('#selector did not hide itself')
+})
+
+test.before(async t => {
+  let nameInput = shadow.find('.nameInput')
+  let valueInput = shadow.find('.constituent input')
+  let selector = shadow.find('.constituentSelector select')
+  await t.typeText(nameInput, 'apple')
+  .click(selector)
+  .click(selector.find('option').withText('Protein'))
+  .typeText(valueInput, '50')
+  .typeText(nameInput, ' ', { replace: true })
+})
+('Clear name when already has constituent value', async t => {
+  await t.expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector should not hide itself')
 })

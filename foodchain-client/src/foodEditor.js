@@ -4,6 +4,13 @@ JSS.setup({createGenerateClassName: () => (rule, sheet) => rule.key})
 JSS.use(jssNested.default())
 
 const styles = {
+  'container': {
+    'width': `calc(100% - 20px)`,
+    'background-color': 'white',
+    'padding': '10px 10px 10px 10px',
+    'position': 'relative',
+    'z-index': '1'
+  },
   'nameInput': {
     'font-family': 'sans-serif',
     'font-size': '24px',
@@ -18,7 +25,61 @@ const styles = {
   },
   'nutrientTable': {
     'list-style-type': 'none',
-    'padding': '0'
+    'padding': '0',
+    'font-family': 'sans-serif',
+    'font-size': '16px',
+    '& li': {
+      'width': '100%',
+      'height': '25px',
+      'margin-bottom': '8px',
+      '&.groupLabel': {
+        'padding-left': '25px'
+      }
+    },
+    '& .constituent': {
+        'font-weight': '100',
+      '& div:nth-child(1)': {
+        'height': '25px',
+        'width': '25px',
+        'line-height': '25px',
+        'text-align': 'center',
+        'float': 'left'
+      },
+      '& div:nth-child(2)': {
+        'height': '25px',
+        'line-height': '25px',
+        'text-align': 'left',
+        'float': 'left',
+        'padding-left': '25px'
+      },
+      '& div:nth-child(3)': {
+        'height': '25px',
+        'float': 'right',
+        'line-height': '25px',
+        'box-sizing': 'border-box',
+        'border-bottom': '6px solid lemonchiffon',
+        '& input' : {
+          'width': '50px',
+          'height': '24px',
+          'position': 'relative',
+          'bottom': '-1px',
+          'background-color': 'rgba(255,255,255,0)',
+          'text-align': 'right',
+          'padding-right': '5px',
+          'font-size': '16',
+          'font-family': 'sans-serif',
+          'font-weight': '100',
+          'border': '0',
+          '&:focus': {
+            'outline': 'none'
+          }
+        }
+      },
+      '&#Energy': {
+        'border-top': '1px solid grey',
+        'padding-top': '10px'
+      }
+    }
   },
   'constituentSelector' : {
     '& div:first-child': {
@@ -92,26 +153,74 @@ const verifyNameExistence = function () {
   })
 }
 
-const addConstituentToEditor = (name) => {
+const makeConstituent = (name) => {
+  let constituent = document.createElement('li')
+  constituent.classList.add('constituent')
+  constituent.id = name
 
+  let remove = document.createElement('div')
+  remove.classList.add('remove')
+  remove.textContent = 'x'
+  constituent.appendChild(remove)
+
+  let constituentName = document.createElement('div')
+  constituentName.textContent = name
+  constituent.appendChild(constituentName)
+
+  let valueInput = document.createElement('div')
+  valueInput.innerHTML = `<input type='number' />g`
+  constituent.appendChild(valueInput)
+
+  return constituent
+}
+
+const addConstituentToEditor = function (name) {
+  let constituentExists = this.querySelector(`#${name}`)
+  if (!constituentExists) {
+    let constituent = makeConstituent(name)
+    if (name === 'Energy') {
+      constituent.querySelector('.remove').addEventListener('click', () => {
+        constituent.remove()
+      })
+      this.appendChild(constituent)
+    } 
+    if (name !== 'Energy') {
+      let labelExists = this.querySelector('.groupLabel')
+      if (!labelExists) {
+        let proximate = document.createElement('li')
+        proximate.classList.add('groupLabel')
+        proximate.innerHTML = 'Proximate:'
+        this.prepend(proximate)
+      }
+
+      constituent.querySelector('.remove').addEventListener('click', () => {
+        constituent.remove()
+        let remainConstituent = this.querySelectorAll('.constituent:not(#Energy)')
+        if (remainConstituent.length === 0) {
+          this.querySelector('.groupLabel').remove()
+        }
+      })
+      this.insertBefore(constituent, this.querySelector('#selector'))
+    }
+  }
 }
 
 const NutrientTable = () => {
-  
   let nutrientTable = document.createElement('ul')
   nutrientTable.classList.add(styleSheet.classes.nutrientTable)
 
   let selector = document.createElement('li')
   selector.id = 'selector'
   selector.hidden = true
-  selector.appendChild(ConstituentSelector())
+
+  selector.appendChild(ConstituentSelector.call(nutrientTable))
   nutrientTable.appendChild(selector)
 
   return nutrientTable
 
 }
 
-const ConstituentSelector = () => {
+const ConstituentSelector = function () {
 
   let container = document.createElement('div')
   container.classList.add(styleSheet.classes.constituentSelector)
@@ -130,7 +239,8 @@ const ConstituentSelector = () => {
 
   let proximateGroup = document.createElement('optgroup')
   proximateGroup.setAttribute('label', 'Proximate')
-  let constituents = ['moisture', 'protein', 'fat', 'carbohydrate', 'minerals']
+  // let constituents = ['moisture', 'protein', 'fat', 'carbohydrate', 'minerals']
+  let constituents = ['Protein', 'Fat', 'Carbohydrate']
   constituents.forEach((v) => {
     let c = document.createElement('option')
     c.setAttribute('value', v)
@@ -140,13 +250,13 @@ const ConstituentSelector = () => {
   selector.appendChild(proximateGroup)
 
   let energy = document.createElement('option')
-  energy.setAttribute('value', 'energy')
+  energy.setAttribute('value', 'Energy')
   energy.innerText = 'Energy'
   selector.appendChild(energy)
 
   selector.addEventListener('change', (event) => {
+    addConstituentToEditor.call(this, event.target.value)
     event.target.selectedIndex = 0
-    addConstituentToEditor(event.target.value)
   })
 
   container.appendChild(selector)
@@ -173,9 +283,10 @@ const NameInput = function () {
   nameInput.addEventListener('keyup', (event) => {
     let selector = this.nutrientTable.querySelector('#selector')
     let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
+    let constituentExists = this.nutrientTable.querySelector('.constituent')
 
     if (name !== '' && selector.hidden) selector.hidden = false
-    if (name === '' && !selector.hidden) selector.hidden = true
+    if (name === '' && !selector.hidden && !constituentExists) selector.hidden = true
   })
 
   return nameInput
@@ -192,11 +303,15 @@ class foodEditor extends HTMLElement {
 
     this.nutrition = new Proxy({}, dataBinder.apply(this))
 
+    this.container = document.createElement('div')
+    this.container.classList.add(styleSheet.classes.container)
+    this.shadow.appendChild(this.container)
+
     this.nameInput = NameInput.call(this)
-    this.shadow.appendChild(this.nameInput)
+    this.container.appendChild(this.nameInput)
 
     this.nutrientTable = NutrientTable()
-    this.shadow.appendChild(this.nutrientTable)
+    this.container.appendChild(this.nutrientTable)
 
   }
 }
