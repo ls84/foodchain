@@ -12,6 +12,7 @@
   "dependencies": {},
   "devDependencies": {
     "http-server": "^0.11.1",
-    "testcafe": "^0.20.0"
+    "nock": "^9.2.6",
+    "testcafe": "^0.20.1"
   }
 }

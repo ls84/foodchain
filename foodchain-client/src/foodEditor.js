@@ -23,9 +23,19 @@ const styles = {
     'border': 'none',
     'border-bottom': 'dotted lightgrey'
   },
+  'nameAddressState': {
+    'font-family': 'sans-serif',
+    'font-size': '14px',
+    'font-weight': '100',
+    'text-align': 'right',
+    'color': 'darkgrey',
+    'width': '100%',
+    'height': '16px'
+  },
   'nutrientTable': {
     'list-style-type': 'none',
     'padding': '0',
+    'margin-top': '0',
     'font-family': 'sans-serif',
     'font-size': '16px',
     '& li': {
@@ -275,6 +285,35 @@ const SignButton = () => {
   return signButton
 }
 
+const resolveNameAddress = function (name) {
+  return sha256Hex(name)
+  .then((hash) => {
+    return window.fetch(`${serverAddress}/state?address=${'100000' + hash}`, {
+      headers: {'Content-Type': 'application/json'},
+      method: 'GET',
+      mode: 'cors'
+    })
+  })
+  .then((response) => {
+    if (!response.ok) return Promise.reject(new Error('response is not okay'))
+    return response.json()
+  })
+  .then((json) => {
+    if (json.data.length === 0) return Promise.resolve('NON-EXISTS') 
+  })
+  .catch((error) => {
+    return Promise.reject(error) 
+  })
+} 
+
+function updateAddressState (name) {
+  switch (name) {
+    case 'NON-EXISTS':
+      this.nameAddressState.innerHTML = 'This is a new food'
+      break
+  }
+}
+
 const NameInput = function () {
   let nameInput = document.createElement('input')
   nameInput.setAttribute('type', 'text')
@@ -287,6 +326,17 @@ const NameInput = function () {
 
     if (name !== '' && selector.hidden) selector.hidden = false
     if (name === '' && !selector.hidden && !constituentExists) selector.hidden = true
+  })
+
+  nameInput.addEventListener('change', (event) => {
+    let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
+    resolveNameAddress(name)
+    .then((state) => {
+      updateAddressState.call(this, state)
+    })
+    .catch((error) => {
+      updateAddressState('NETWORK-ERROR') 
+    })
   })
 
   return nameInput
@@ -309,6 +359,10 @@ class foodEditor extends HTMLElement {
 
     this.nameInput = NameInput.call(this)
     this.container.appendChild(this.nameInput)
+
+    this.nameAddressState = document.createElement('div')
+    this.nameAddressState.classList.add(styleSheet.classes.nameAddressState)
+    this.container.appendChild(this.nameAddressState)
 
     this.nutrientTable = NutrientTable()
     this.container.appendChild(this.nutrientTable)

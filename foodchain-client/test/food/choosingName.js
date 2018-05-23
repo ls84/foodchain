@@ -15,9 +15,9 @@ const blurInput = ClientFunction(() => {
 //   foodEditor.nameInput.value = ''
 // })
 
-// const goodAddressStateRequest = RequestMock()
-// .onRequestTo('https://api.com')
-// .respond('good', 200)
+const nonExistsAddressStateRequest = RequestMock()
+.onRequestTo(new RegExp('/state'))
+.respond({data: []}, 200)
 
 test.before(async t => {
   await t.typeText(shadow.find('.nameInput'), 'apple')
@@ -25,6 +25,17 @@ test.before(async t => {
 ('Type "apple"', async t => {
   await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
   .expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector did not unhidden itself')
+})
+
+test
+.requestHooks(nonExistsAddressStateRequest)
+.before(async t => {
+  await t.typeText(shadow.find('.nameInput'), 'notafoodyet')
+  await blurInput()
+})
+('Type a non-exists name', async t => {
+  let nameAddressState = ClientFunction(() => foodEditor.shadow.querySelector('.nameAddressState').textContent)
+  await t.expect(await nameAddressState()).match(/new food/, 'address state should indicate it\'s a new food')
 })
 
 test.before(async t => {
