@@ -121,24 +121,25 @@ const styles = {
       'z-index': '-1',
       'border': 'none'
     }
+  },
+  'signButton': {
+    'height': '30px',
+    'width': '60px',
+    'line-height':'30px',
+    'text-align': 'center',
+    'background-color': 'white',
+    'margin-top': '10px',
+    'margin-bottom': '10px',
+    'float': 'right',
+    'font-family': 'sans-serif',
+    'color': 'lightgrey',
+    '&.active' : {
+      'color': 'black'
+    }
   }
 }
 
 const styleSheet = JSS.createStyleSheet(styles)
-
-const dataBinder = function () {
-  const set = (t, p, v, r) => {
-    console.log('set')
-    return Reflect.set(t, p, v, r)
-  }
-
-  const get = (t, p, r) => {
-    console.log('get')
-    return Reflect.get(t, p, r)
-  }
-
-  return { set, get }
-}
 
 const verifyNameExistence = function () {
   let url = 'https://api.com'
@@ -278,9 +279,13 @@ const ConstituentSelector = function () {
   return container
 }
 
-const SignButton = () => {
+function SignButton () {
   let signButton = document.createElement('div')
   signButton.classList.add('signButton')
+  signButton.textContent = 'Sign'
+  signButton.addEventListener('click', (event) => {
+    if (signButton.classList.contains('active') && this.sign !== undefined) this.sign()
+  })
 
   return signButton
 }
@@ -309,7 +314,8 @@ const resolveNameAddress = function (name) {
 function updateAddressState (name) {
   switch (name) {
     case 'NON-EXISTS':
-      this.nameAddressState.innerHTML = 'This is a new food'
+      this.nameAddressState.innerHTML = 'new food'
+      this.signButton.classList.add('active')
       break
   }
 }
@@ -324,8 +330,17 @@ const NameInput = function () {
     let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
     let constituentExists = this.nutrientTable.querySelector('.constituent')
 
-    if (name !== '' && selector.hidden) selector.hidden = false
-    if (name === '' && !selector.hidden && !constituentExists) selector.hidden = true
+    if (name !== '' && selector.hidden) {
+      selector.hidden = false
+      this.signButton.hidden = false
+    }
+
+    if (name === '' && !selector.hidden && !constituentExists) {
+      selector.hidden = true
+      this.signButton.hidden = true
+    }
+
+    this.signButton.classList.remove('active')
   })
 
   nameInput.addEventListener('change', (event) => {
@@ -351,8 +366,6 @@ class foodEditor extends HTMLElement {
     style.textContent = styleSheet.toString()
     this.shadow.appendChild(style)
 
-    this.nutrition = new Proxy({}, dataBinder.apply(this))
-
     this.container = document.createElement('div')
     this.container.classList.add(styleSheet.classes.container)
     this.shadow.appendChild(this.container)
@@ -367,6 +380,15 @@ class foodEditor extends HTMLElement {
     this.nutrientTable = NutrientTable()
     this.container.appendChild(this.nutrientTable)
 
+    this.signButton = SignButton.call(this)
+    this.signButton.hidden = true
+    this.shadow.appendChild(this.signButton)
+  }
+
+  compileData () {
+    return {
+      name: this.nameInput.value
+    }
   }
 }
 

@@ -19,8 +19,20 @@
     <script type='module'>
       window.serverAddress = ''
       import '../../src/foodEditor.js'
+      import '../../src/foodItem.js'
       window.foodEditor = document.createElement('food-editor')
+      foodEditor.sign = () => {
+        let foodItem = document.createElement('food-item')
+        foodItem.update(foodEditor.compileData())
+        document.body.appendChild(foodItem)
+      }
       document.body.appendChild(foodEditor)
+      window.testFoodItem = function () {
+        console.log('testFoodItem')
+        let foodItem = document.createElement('food-item')
+        foodItem.update({name: 'test'})
+        document.body.appendChild(foodItem)
+      }
     </script>
   </body>
 </html>

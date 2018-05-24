@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe'
 import { ClientFunction } from 'testcafe'
 
-fixture('Dependency')
+fixture.skip('Dependency')
 .page(`http://localhost:8002/test/fixture/dependency.html`)
 
 const getCbor = ClientFunction(() => CBOR)
