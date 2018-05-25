@@ -161,9 +161,13 @@ class foodEditor extends HTMLElement {
   }
 
   compileData () {
-    return {
+    let data = {
       name: this.nameInput.value
     }
+    this.nutrientTable.shadow.querySelectorAll('.constituent').forEach((v) => {
+      data[v.id] = v.querySelector('input').value
+    })
+    return data
   }
 }
 

@@ -6,7 +6,7 @@ const styles = {
   'container': {
     'list-style-type': 'none',
     'padding': '0',
-    'margin-top': '0',
+    'margin': '0',
     'font-family': 'sans-serif',
     'font-size': '16px',
     '& li': {
@@ -112,7 +112,7 @@ const makeConstituent = (name) => {
   constituent.appendChild(constituentName)
 
   let valueInput = document.createElement('div')
-  valueInput.innerHTML = `<input type='number' />g`
+  valueInput.innerHTML = (name === 'Energy') ? `<input type='number' />Kcal` : `<input type='number' />Kcal`
   constituent.appendChild(valueInput)
 
   return constituent
@@ -185,10 +185,18 @@ class nutrientTable extends HTMLElement {
     this.selector = Selector.call(this)
   }
   
-  addConstituent (name) {
+  addConstituent (name, value) {
     let constituentExists = this.container.querySelector(`#${name}`)
     if (!constituentExists) {
       let constituent = makeConstituent(name)
+      if (value) {
+        let input = constituent.querySelector('input')
+        input.value = value
+        input.disabled = true
+        
+        let remove = constituent.querySelector('.remove')
+        remove.hidden = true
+      }
       if (name === 'Energy') {
         constituent.querySelector('.remove').addEventListener('click', () => {
           constituent.remove()
@@ -214,6 +222,12 @@ class nutrientTable extends HTMLElement {
         this.container.insertBefore(constituent, this.selector)
       }
     }
+  }
+
+  update (data) {
+    Object.entries(data).forEach((v) => {
+      this.addConstituent(v[0], v[1])
+    })
   }
 }
 

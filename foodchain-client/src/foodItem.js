@@ -28,15 +28,30 @@ class foodItem extends HTMLElement {
 
     this.container = document.createElement('div')
     this.container.classList.add('container')
+
+    this.name = document.createElement('div')
+    this.name.classList.add('name')
+    this.container.append(this.name)
+
+    this.nutrientTable = document.createElement('nutrient-table')
+    this.nutrientTable.container.hidden = true
+    this.container.append(this.nutrientTable)
+
+    this.container.addEventListener('click', () => {
+      let currentState = this.nutrientTable.container.hidden
+      this.nutrientTable.container.hidden = (currentState) ? false : true
+    })
+
     this.shadow.appendChild(this.container)
   }
 
   update (data) {
-    let name = document.createElement('div')
-    name.classList.add('name')
-    name.textContent = data.name
+    this.data = data
 
-    this.container.appendChild(name)
+    if (data.name) this.name.textContent = data.name
+
+    delete data.name
+    this.nutrientTable.update(data)
   }
 }
 

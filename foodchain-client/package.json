@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "testcafe --ports 8000,8001 --hostname localhost remote:1 test/",
+    "dev": "testcafe --debug-on-fail --ports 8000,8001 --hostname localhost remote:1 test/",
     "serve": "http-server . -a 0.0.0.0 -p 8002 -c -1"
   },
   "author": "Liu Shuo",

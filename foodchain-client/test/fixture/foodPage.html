@@ -32,7 +32,7 @@
       window.testFoodItem = function () {
         console.log('testFoodItem')
         let foodItem = document.createElement('food-item')
-        foodItem.update({name: 'test'})
+        foodItem.update(foodEditor.compileData())
         document.body.appendChild(foodItem)
       }
     </script>
