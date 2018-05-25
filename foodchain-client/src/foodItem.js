@@ -18,7 +18,7 @@ const styles = {
 
 const styleSheet = JSS.createStyleSheet(styles)
 
-class foodItem extends HTMLElement {
+export default class foodItem extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -46,14 +46,10 @@ class foodItem extends HTMLElement {
   }
 
   update (data) {
-    this.data = data
-
-    if (data.name) this.name.textContent = data.name
-
-    Object.entries(this.data)
-    .filter(v => v[0] !== 'name')
-    .forEach((v) => { this.nutrientTable.addConstituent(v[0], v[1]) })
+    this.data = Object.assign({}, data)
+    if (this.data.name) this.name.textContent = this.data.name
+    for (let property in this.data) {
+      if (property !== 'name') this.nutrientTable.addConstituent(property, this.data[property])
+    }
   }
 }
-
-customElements.define('food-item', foodItem)

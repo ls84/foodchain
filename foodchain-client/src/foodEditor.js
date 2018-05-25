@@ -131,7 +131,7 @@ const NameInput = function () {
   return nameInput
 }
 
-class foodEditor extends HTMLElement {
+export default class foodEditor extends HTMLElement {
 
   constructor () {
     super()
@@ -170,5 +170,3 @@ class foodEditor extends HTMLElement {
     return data
   }
 }
-
-customElements.define('food-editor', foodEditor)

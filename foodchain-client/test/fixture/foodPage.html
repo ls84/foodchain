@@ -16,6 +16,17 @@
     </style>
   </head>
   <body>
+    <script type="module">
+      import nutrientTable from '../../src/nutrientTable.js'
+      customElements.define('nutrient-table', nutrientTable)
+
+      import foodEditor from '../../src/foodEditor.js'
+      customElements.define('food-editor', foodEditor)
+
+      import foodItem from '../../src/foodItem.js'
+      customElements.define('food-item', foodItem)
+    </script>
+
     <script type='module'>
       import { IndexedDB } from '../../src/indexedDB.js'
       window.database = new IndexedDB('foodChain')
@@ -39,9 +50,6 @@
       })
 
       window.serverAddress = ''
-      import '../../src/nutrientTable.js'
-      import '../../src/foodEditor.js'
-      import '../../src/foodItem.js'
 
       const timeNow = () => {
         let datetime = new Date()

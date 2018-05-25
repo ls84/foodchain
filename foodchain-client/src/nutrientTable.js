@@ -170,7 +170,7 @@ const Selector = function () {
   return container
 }
 
-class nutrientTable extends HTMLElement {
+export default class nutrientTable extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -230,5 +230,3 @@ class nutrientTable extends HTMLElement {
     })
   }
 }
-
-customElements.define('nutrient-table', nutrientTable)
