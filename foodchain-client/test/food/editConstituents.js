@@ -3,10 +3,10 @@ import { Selector } from 'testcafe'
 fixture('Editing Constituents')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
-const shadow = Selector(() => foodEditor.shadow)
-const nameInput = shadow.find('.nameInput')
-const selector = shadow.find('.constituentSelector select')
-const nutrientTable = shadow.find('.nutrientTable')
+const foodEditor = Selector(() => foodEditor.shadow)
+const nutrientTable = Selector(() => foodEditor.nutrientTable.shadow)
+const nameInput = foodEditor.find('.nameInput')
+const selector = nutrientTable.find('.constituentSelector select')
 
 test.before(async t => {
   await t.typeText(nameInput, 'apple')

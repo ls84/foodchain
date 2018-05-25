@@ -18,6 +18,7 @@
   <body>
     <script type='module'>
       window.serverAddress = ''
+      import '../../src/nutrientTable.js'
       import '../../src/foodEditor.js'
       import '../../src/foodItem.js'
       window.foodEditor = document.createElement('food-editor')
@@ -27,6 +28,7 @@
         document.body.appendChild(foodItem)
       }
       document.body.appendChild(foodEditor)
+
       window.testFoodItem = function () {
         console.log('testFoodItem')
         let foodItem = document.createElement('food-item')

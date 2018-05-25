@@ -3,6 +3,7 @@ const JSS = jss.create()
 JSS.setup({createGenerateClassName: () => (rule, sheet) => rule.key})
 JSS.use(jssNested.default())
 
+
 const styles = {
   'container': {
     'width': `calc(100% - 20px)`,
@@ -32,96 +33,6 @@ const styles = {
     'width': '100%',
     'height': '16px'
   },
-  'nutrientTable': {
-    'list-style-type': 'none',
-    'padding': '0',
-    'margin-top': '0',
-    'font-family': 'sans-serif',
-    'font-size': '16px',
-    '& li': {
-      'width': '100%',
-      'height': '25px',
-      'margin-bottom': '8px',
-      '&.groupLabel': {
-        'padding-left': '25px'
-      }
-    },
-    '& .constituent': {
-        'font-weight': '100',
-      '& div:nth-child(1)': {
-        'height': '25px',
-        'width': '25px',
-        'line-height': '25px',
-        'text-align': 'center',
-        'float': 'left'
-      },
-      '& div:nth-child(2)': {
-        'height': '25px',
-        'line-height': '25px',
-        'text-align': 'left',
-        'float': 'left',
-        'padding-left': '25px'
-      },
-      '& div:nth-child(3)': {
-        'height': '25px',
-        'float': 'right',
-        'line-height': '25px',
-        'box-sizing': 'border-box',
-        'border-bottom': '6px solid lemonchiffon',
-        '& input' : {
-          'width': '50px',
-          'height': '24px',
-          'position': 'relative',
-          'bottom': '-1px',
-          'background-color': 'rgba(255,255,255,0)',
-          'text-align': 'right',
-          'padding-right': '5px',
-          'font-size': '16',
-          'font-family': 'sans-serif',
-          'font-weight': '100',
-          'border': '0',
-          '&:focus': {
-            'outline': 'none'
-          }
-        }
-      },
-      '&#Energy': {
-        'border-top': '1px solid grey',
-        'padding-top': '10px'
-      }
-    }
-  },
-  'constituentSelector' : {
-    '& div:first-child': {
-      'height': '25px',
-      'width': '25px',
-      'line-height': '25px',
-      'text-align': 'center',
-      'float': 'left'
-    },
-    '& select': {
-      'height': '25px',
-      'outline': 'none',
-      'border-radius': '0px',
-      'background-color': 'rgba(255,255,255,0)',
-      'float': 'left',
-      'padding-right': '15px',
-      'border': 'none',
-    },
-    '& div:nth-child(3)': {
-      'height': '25px',
-      'width': '120px',
-      'padding-right': '5px',
-      'background-color': 'rgb(245,245,245)',
-      'line-height': '25px',
-      'text-align': 'right',
-      'float': 'left',
-      'position': 'relative',
-      'left': '-125px',
-      'z-index': '-1',
-      'border': 'none'
-    }
-  },
   'signButton': {
     'height': '30px',
     'width': '60px',
@@ -140,144 +51,6 @@ const styles = {
 }
 
 const styleSheet = JSS.createStyleSheet(styles)
-
-const verifyNameExistence = function () {
-  let url = 'https://api.com'
-  let name = this.nameInput.value
-  return sha256Hex(name)
-  .then((hash) => {
-   return fetch(url, {
-      method: 'GET',
-      headers: {'Content-Type': 'application/octet-stream'},
-      mode: 'cors'
-    })
-  })
-  .then((response) => {
-    return response.text()
-  })
-  .then((text) => {
-    if (text === 'good') return Promise.resolve('good')
-    return Promise.reject('unkown error')
-  })
-  .catch((e) => {
-    return Promise.reject(error)
-  })
-}
-
-const makeConstituent = (name) => {
-  let constituent = document.createElement('li')
-  constituent.classList.add('constituent')
-  constituent.id = name
-
-  let remove = document.createElement('div')
-  remove.classList.add('remove')
-  remove.textContent = 'x'
-  constituent.appendChild(remove)
-
-  let constituentName = document.createElement('div')
-  constituentName.textContent = name
-  constituent.appendChild(constituentName)
-
-  let valueInput = document.createElement('div')
-  valueInput.innerHTML = `<input type='number' />g`
-  constituent.appendChild(valueInput)
-
-  return constituent
-}
-
-const addConstituentToEditor = function (name) {
-  let constituentExists = this.querySelector(`#${name}`)
-  if (!constituentExists) {
-    let constituent = makeConstituent(name)
-    if (name === 'Energy') {
-      constituent.querySelector('.remove').addEventListener('click', () => {
-        constituent.remove()
-      })
-      this.appendChild(constituent)
-    } 
-    if (name !== 'Energy') {
-      let labelExists = this.querySelector('.groupLabel')
-      if (!labelExists) {
-        let proximate = document.createElement('li')
-        proximate.classList.add('groupLabel')
-        proximate.innerHTML = 'Proximate:'
-        this.prepend(proximate)
-      }
-
-      constituent.querySelector('.remove').addEventListener('click', () => {
-        constituent.remove()
-        let remainConstituent = this.querySelectorAll('.constituent:not(#Energy)')
-        if (remainConstituent.length === 0) {
-          this.querySelector('.groupLabel').remove()
-        }
-      })
-      this.insertBefore(constituent, this.querySelector('#selector'))
-    }
-  }
-}
-
-const NutrientTable = () => {
-  let nutrientTable = document.createElement('ul')
-  nutrientTable.classList.add(styleSheet.classes.nutrientTable)
-
-  let selector = document.createElement('li')
-  selector.id = 'selector'
-  selector.hidden = true
-
-  selector.appendChild(ConstituentSelector.call(nutrientTable))
-  nutrientTable.appendChild(selector)
-
-  return nutrientTable
-
-}
-
-const ConstituentSelector = function () {
-
-  let container = document.createElement('div')
-  container.classList.add(styleSheet.classes.constituentSelector)
-
-  let plusSign = document.createElement('div')
-  plusSign.textContent = '+'
-  container.appendChild(plusSign)
-
-  let selector = document.createElement('select')
-
-  let placeHolder = document.createElement('option')
-  placeHolder.setAttribute('disabled', true)
-  placeHolder.setAttribute('selected', true)
-  placeHolder.innerText = 'Add Constituents'
-  selector.appendChild(placeHolder)
-
-  let proximateGroup = document.createElement('optgroup')
-  proximateGroup.setAttribute('label', 'Proximate')
-  // let constituents = ['moisture', 'protein', 'fat', 'carbohydrate', 'minerals']
-  let constituents = ['Protein', 'Fat', 'Carbohydrate']
-  constituents.forEach((v) => {
-    let c = document.createElement('option')
-    c.setAttribute('value', v)
-    c.innerText = v[0].toUpperCase() + v.substring(1)
-    proximateGroup.appendChild(c)
-  })
-  selector.appendChild(proximateGroup)
-
-  let energy = document.createElement('option')
-  energy.setAttribute('value', 'Energy')
-  energy.innerText = 'Energy'
-  selector.appendChild(energy)
-
-  selector.addEventListener('change', (event) => {
-    addConstituentToEditor.call(this, event.target.value)
-    event.target.selectedIndex = 0
-  })
-
-  container.appendChild(selector)
-
-  let blackTriangleDown = document.createElement('div')
-  blackTriangleDown.textContent = '▾'
-  container.appendChild(blackTriangleDown)
-
-  return container
-}
 
 function SignButton () {
   let signButton = document.createElement('div')
@@ -326,9 +99,10 @@ const NameInput = function () {
   nameInput.classList.add(styleSheet.classes.nameInput)
 
   nameInput.addEventListener('keyup', (event) => {
-    let selector = this.nutrientTable.querySelector('#selector')
+    // let selector = this.nutrientTable.querySelector('#selector')
+    let selector = this.nutrientTable.selector
     let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
-    let constituentExists = this.nutrientTable.querySelector('.constituent')
+    let constituentExists = this.nutrientTable.shadow.querySelector('.constituent')
 
     if (name !== '' && selector.hidden) {
       selector.hidden = false
@@ -377,7 +151,8 @@ class foodEditor extends HTMLElement {
     this.nameAddressState.classList.add(styleSheet.classes.nameAddressState)
     this.container.appendChild(this.nameAddressState)
 
-    this.nutrientTable = NutrientTable()
+    // this.nutrientTable = NutrientTable()
+    this.nutrientTable = document.createElement('nutrient-table')
     this.container.appendChild(this.nutrientTable)
 
     this.signButton = SignButton.call(this)

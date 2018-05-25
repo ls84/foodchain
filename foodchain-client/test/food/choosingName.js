@@ -5,7 +5,11 @@ import { RequestMock } from 'testcafe'
 fixture('Choosing Name')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
-const shadow = Selector(() => foodEditor.shadow)
+const foodEditor = Selector(() => foodEditor.shadow)
+const nutrientTable = Selector(() => foodEditor.nutrientTable.shadow)
+const nameInput = foodEditor.find('.nameInput')
+const selector = nutrientTable.find('.constituentSelector select')
+const valueInput = nutrientTable.find('.constituent input')
 
 const blurInput = ClientFunction(() => {
   foodEditor.nameInput.blur()
@@ -20,17 +24,16 @@ const nonExistsAddressStateRequest = RequestMock()
 .respond({data: []}, 200)
 
 test.before(async t => {
-  await t.typeText(shadow.find('.nameInput'), 'apple')
+  await t.typeText(nameInput, 'apple')
 })
 ('Type "apple"', async t => {
-  await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
-  .expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector did not unhidden itself')
+  await t.expect(await nutrientTable.find('.constituentSelector').hasAttribute('hidden')).notOk('constituentSelector should reveal itself')
 })
 
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(shadow.find('.nameInput'), 'notafoodyet')
+  await t.typeText(nameInput, 'notafoodyet')
   await blurInput()
 })
 ('Type a non-exists name', async t => {
@@ -39,14 +42,12 @@ test
 })
 
 test.before(async t => {
-  let nameInput = await shadow.find('.nameInput')
   await t.typeText(nameInput, 'apple')
   await blurInput()
   await t.typeText(nameInput, 'banana', { replace: true })
 })
 ('Change name from "apple" to "banana"', async t => {
-  await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
-  .expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector did not unhidden itself')
+  await t.expect(await nutrientTable.find('.constituentSelector').hasAttribute('hidden')).notOk('constituentSelector should reveal itself')
 })
 
 // testcafe pressKey shadow Element bug
@@ -59,19 +60,14 @@ test.skip.before(async t => {
 })
 
 test.before(async t => {
-  let nameInput = await shadow.find('.nameInput')
   await t.typeText(nameInput, 'apple')
   .typeText(nameInput, ' ', { replace: true })
 })
 ('Enter empty characters', async t => {
-  await t.expect(await shadow.find('.constituentSelector').exists).ok('constituentSelector did not exists')
-  .expect(await shadow.find('#selector').hasAttribute('hidden')).ok('#selector did not hide itself')
+  await t.expect(await nutrientTable.find('.constituentSelector').hasAttribute('hidden')).ok('constituentSelector should hide itself')
 })
 
 test.before(async t => {
-  let nameInput = shadow.find('.nameInput')
-  let valueInput = shadow.find('.constituent input')
-  let selector = shadow.find('.constituentSelector select')
   await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
@@ -79,5 +75,5 @@ test.before(async t => {
   .typeText(nameInput, ' ', { replace: true })
 })
 ('Clear name when already has constituent value', async t => {
-  await t.expect(await shadow.find('#selector').hasAttribute('hidden')).notOk('#selector should not hide itself')
+  await t.expect(await nutrientTable.find('.constituentSelector').hasAttribute('hidden')).notOk('constituentSelector should not hide itself anymore')
 })
