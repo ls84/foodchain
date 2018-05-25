@@ -42,9 +42,18 @@ test
   await t.click(signButton)
 })
 ('Sign a "NON-EXISTS" food', async t => {
-  await t.expect(foodItem.exists).ok('should create a food-item')
+  let databaseState = ClientFunction(() => database.matchOnly('food', 'name', 'apple'))
+  let foodData = await databaseState()
+  await t.expect(foodData[0].name).eql('apple', '"name" data should be "apple"')
+  .expect(foodData[0].Energy).eql('95', 'data "Energy" data should be 95')
+  .expect(foodData[0].status).eql('SIGNED', 'data "status" data should be "SIGNED"')
+  .expect(foodItem.exists).ok('should create a food-item')
   .expect(foodItem.find('div').withText('apple').exists).ok('should has name "apple"')
   .expect(foodItemTable.find('.container').hasAttribute('hidden')).ok('nutrientTable should be hidden first')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
+  await removeSignedData()
 })
 
 test
@@ -61,4 +70,8 @@ test
   let getValue = ClientFunction(() => document.querySelector('food-item').nutrientTable.shadow.querySelector('.constituent input').value)
   await t.expect(foodItemTable.find('.constituent div:nth-child(2)').withText('Energy').exists).ok('should show constituent name')
   .expect(getValue()).eql('95', 'should show constituent value')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
+  await removeSignedData()
 })

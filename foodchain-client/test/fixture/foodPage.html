@@ -17,24 +17,66 @@
   </head>
   <body>
     <script type='module'>
+      import { IndexedDB } from '../../src/indexedDB.js'
+      window.database = new IndexedDB('foodChain')
+
+      database.update()
+      .then((db) => {
+        let foodStore = db.createObjectStore('food', {keyPath: 'name'})
+        foodStore.createIndex('name', 'name', {unique: true})
+        foodStore.createIndex('status', 'status', {unique: false})
+        foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+
+        let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetime'})
+        consumptionStore.createIndex('datetime', 'datetime', {unique: true})
+        consumptionStore.createIndex('status', 'status', {unique: false})
+        consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+
+      })
+      .catch((error) => {
+        if (error.name === 'ConstraintError') console.log('objectStore already created')
+        if (error.name !== 'ConstraintError') throw new Error(error)
+      })
+
       window.serverAddress = ''
       import '../../src/nutrientTable.js'
       import '../../src/foodEditor.js'
       import '../../src/foodItem.js'
+
+      const timeNow = () => {
+        let datetime = new Date()
+        let options = {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          weekday: 'long',
+          hour12: false,
+          timeZone: 'Asia/Shanghai'
+        }
+        return {
+          'string': new Intl.DateTimeFormat('zh-Hans-CN', options).format(datetime),
+          'value': datetime.valueOf()
+        }
+      }
+
       window.foodEditor = document.createElement('food-editor')
       foodEditor.sign = () => {
+        let data = foodEditor.compileData()
+
         let foodItem = document.createElement('food-item')
-        foodItem.update(foodEditor.compileData())
+        foodItem.update(data)
+
+        let now = new Date()
+        data.timeStamp = now.valueOf()
+        data.status = 'SIGNED'
+        database.insertAll('food', [data])
+
         document.body.appendChild(foodItem)
       }
       document.body.appendChild(foodEditor)
 
-      window.testFoodItem = function () {
-        console.log('testFoodItem')
-        let foodItem = document.createElement('food-item')
-        foodItem.update(foodEditor.compileData())
-        document.body.appendChild(foodItem)
-      }
     </script>
   </body>
 </html>

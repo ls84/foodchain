@@ -50,8 +50,9 @@ class foodItem extends HTMLElement {
 
     if (data.name) this.name.textContent = data.name
 
-    delete data.name
-    this.nutrientTable.update(data)
+    Object.entries(this.data)
+    .filter(v => v[0] !== 'name')
+    .forEach((v) => { this.nutrientTable.addConstituent(v[0], v[1]) })
   }
 }
 
