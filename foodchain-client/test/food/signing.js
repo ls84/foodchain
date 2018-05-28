@@ -1,6 +1,7 @@
 import { Selector, RequestMock, ClientFunction } from 'testcafe'
 
-fixture('Signing Food Item')
+fixture
+('Signing Food Item')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
 const foodEditor = Selector(() => foodEditor.shadow)
@@ -53,6 +54,29 @@ test
 })
 .after(async t => {
   let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
+  await removeSignedData()
+})
+
+test
+.requestHooks(nonExistsAddressStateRequest)
+.before(async t  => {
+  await t.typeText(nameInput, 'apple')
+  await blurInput()
+  await t.click(signButton)
+
+  await t.typeText(nameInput, 'banana')
+  await blurInput()
+  await t.click(signButton)
+})
+('Sign multiple food', async t => {
+  let firstItem = Selector(() => document.querySelectorAll('food-item')[0].shadow)
+  let secondItem = Selector(() => document.querySelectorAll('food-item')[1].shadow)
+
+  await t.expect(firstItem.find('div').withText('apple').exists).ok('should have "apple" item')
+  .expect(secondItem.find('div').withText('banana').exists).ok('should have "banana" item')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple', 'banana']))
   await removeSignedData()
 })
 
