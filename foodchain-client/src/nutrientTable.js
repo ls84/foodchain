@@ -112,7 +112,7 @@ const makeConstituent = (name) => {
   constituent.appendChild(constituentName)
 
   let valueInput = document.createElement('div')
-  valueInput.innerHTML = (name === 'Energy') ? `<input type='number' />Kcal` : `<input type='number' />Kcal`
+  valueInput.innerHTML = (name === 'Energy') ? `<input type='number' />Kcal` : `<input type='number' />g`
   constituent.appendChild(valueInput)
 
   return constituent
