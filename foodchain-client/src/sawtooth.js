@@ -38,12 +38,16 @@ class Sawtooth {
       batcherPublicKey: batcherKey.getPublic().encodeCompressed('hex'),
     }
 
-    let payloadBytes = cbor.encode(payload)
+    let payloadBytes = CBOR.encode(payload)
     let headerBytes
     return window.crypto.subtle.digest('SHA-512', payloadBytes)
     .then((hash) => {
       header = Object.assign(baseHeader, header)
-      header.payloadSha512 = hex(hash)
+      let hex = new Uint8Array(hash)
+      .reduce((p, c) => {
+        return p + c.toString(16).padStart(2, '0')
+      }, '')
+      header.payloadSha512 = hex
       headerBytes = this.proto.TransactionHeader.encode(header).finish()
       return window.crypto.subtle.digest('SHA-256', headerBytes)
     })

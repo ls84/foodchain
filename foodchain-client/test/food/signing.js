@@ -30,6 +30,7 @@ test
 })
 ('NON-EXISTS Name Address', async t => {
  await t.expect(signButton.hasClass('active')).ok('sign button should be activated')
+ // .debug()
 })
 
 test
@@ -101,9 +102,10 @@ test
 })
 
 test
-.page(`http://localhost:8002/test/fixture/foodPageSigned.html`)
+.skip
+.page(`http://localhost:8002/test/fixture/foodPage.html`)
 ('Display signed data', async t => {
-  await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')
+  await t.expect(foodItem.find('div').withText('signedapple').exists).ok('should have a food Item displayed')
 })
 .after(async t => {
   let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))

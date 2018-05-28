@@ -53,4 +53,18 @@ export default class foodItem extends HTMLElement {
       if (property !== 'name') this.nutrientTable.addConstituent(property, this.data[property])
     }
   }
+
+  build () {
+    if (!this.data.name) throw new Error('data should have a name')
+    return sha256Hex(this.data.name)
+    .then((hex) => {
+      let address = '100000' + hex
+      let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
+      header.inputs = [address]
+      header.outputs = [address] 
+
+      let payload = { action: 'create', food: this.data }
+      return sawtooth.buildTransaction(header, payload)
+    })
+  }
 }

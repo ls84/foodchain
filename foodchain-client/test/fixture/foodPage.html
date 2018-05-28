@@ -17,6 +17,11 @@
   </head>
   <body>
     <script type="module">
+      // window.cbor = CBOR
+
+      import { sha256Hex } from '../../src/hashing.js'
+      window.sha256Hex = sha256Hex
+
       import nutrientTable from '../../src/nutrientTable.js'
       customElements.define('nutrient-table', nutrientTable)
 
@@ -25,11 +30,26 @@
 
       import foodItem from '../../src/foodItem.js'
       customElements.define('food-item', foodItem)
+
+      import { IndexedDB } from '../../src/indexedDB.js'
+      window.database = new IndexedDB('foodChain')
+      
+      import { generateNewKey, importKey, Sawtooth } from '../../src/sawtooth.js'
+
+      let key
+      try {
+        key = importKey()
+      } catch (error) {
+        if (error.message === 'there is no key') key = generateNewKey()
+      }
+
+      window.sawtooth = new Sawtooth(key)
+      sawtooth.init(['../../dist/external/proto/batch.proto', '../../dist/external/proto/transaction.proto'])
+
     </script>
 
     <script type='module'>
-      import { IndexedDB } from '../../src/indexedDB.js'
-      window.database = new IndexedDB('foodChain')
+      window.serverAddress = ''
 
       // database.update()
       // .then((db) => {
@@ -48,8 +68,6 @@
       //   if (error.name === 'ConstraintError') console.log('objectStore already created')
       //   if (error.name !== 'ConstraintError') throw new Error(error)
       // })
-
-      window.serverAddress = ''
 
       const timeNow = () => {
         let datetime = new Date()
@@ -75,14 +93,17 @@
 
         let foodItem = document.createElement('food-item')
         foodItem.update(data)
-
-        let now = new Date()
-        data.timeStamp = now.valueOf()
-        data.status = 'SIGNED'
-        database.insertAll('food', [data])
-
-        document.body.appendChild(foodItem)
-        foodEditor.nameInput.value = ''
+        foodItem.build()
+        .then((transaction) => {
+          data.timeStamp = Date.now()
+          data.status = 'SIGNED'
+          data.transaction = transaction
+          return database.insertAll('food', [data])
+        })
+        .then(() => {
+          document.body.appendChild(foodItem)
+          foodEditor.nameInput.value = ''
+        })
       }
       document.body.appendChild(foodEditor)
 
