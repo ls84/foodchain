@@ -7,6 +7,7 @@ JSS.use(jssNested.default())
 const styles = {
   'container': {
     'width': `calc(100% - 20px)`,
+    'margin-bottom': '10px',
     'background-color': 'white',
     'padding': '10px 10px 10px 10px',
     'position': 'relative',
@@ -40,7 +41,7 @@ const styles = {
     'text-align': 'center',
     'background-color': 'white',
     'margin-top': '10px',
-    'margin-bottom': '10px',
+    'margin-bottom': '20px',
     'float': 'right',
     'font-family': 'sans-serif',
     'color': 'lightgrey',

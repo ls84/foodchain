@@ -99,3 +99,13 @@ test
   let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
   await removeSignedData()
 })
+
+test
+.page(`http://localhost:8002/test/fixture/foodPageSigned.html`)
+('Display signed data', async t => {
+  await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
+  await removeSignedData()
+})
