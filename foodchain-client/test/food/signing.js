@@ -8,9 +8,9 @@ const foodEditor = Selector(() => foodEditor.shadow)
 const nutrientTable = Selector(() => foodEditor.nutrientTable.shadow)
 const foodItem = Selector(() => document.querySelector('food-item').shadow)
 const foodItemTable = Selector(() => document.querySelector('food-item').nutrientTable.shadow)
+const signButton = Selector('.signButton')
 
 const nameInput = foodEditor.find('.nameInput')
-const signButton = foodEditor.find('.signButton')
 const selector = nutrientTable.find('.constituentSelector select')
 
 

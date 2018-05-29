@@ -2,7 +2,8 @@ import { Selector } from 'testcafe'
 import { ClientFunction } from 'testcafe'
 import { RequestMock } from 'testcafe'
 
-fixture('Choosing Name')
+fixture
+('Choosing Name')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
 const foodEditor = Selector(() => foodEditor.shadow)

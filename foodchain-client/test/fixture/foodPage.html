@@ -13,6 +13,24 @@
       body {
         background-color: whitesmoke;
       }
+
+      .signButton {
+        height: 30px;
+        width: 60px;
+        line-height:30px;
+        text-align: center;
+        background-color: white;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        float: right;
+        font-family: sans-serif;
+        color: lightgrey;
+      }
+
+      .signButton.active {
+        color: black
+      }
+
     </style>
   </head>
   <body>
@@ -86,33 +104,76 @@
         }
       }
 
-      window.foodEditor = document.createElement('food-editor')
-      foodEditor.sign = () => {
-        let data = foodEditor.compileData()
+      const SubmitButton = () => {
+        let submitButton = document.createElement('div')
+        submitButton.classList.add('submitButton')
+        submitButton.hidden = true
+        submitButton.textContent = 'Submit'
+        submitButton.addEventListener('click', (event) => {
+          // if (submitButton.classList.contains('active') && this.submit !== undefined) this.submit()
+        })
 
-        let foodItem = document.createElement('food-item')
-        foodItem.update(data)
-        foodItem.build()
-        .then((transaction) => {
-          data.timeStamp = Date.now()
-          data.status = 'SIGNED'
-          data.transaction = transaction
-          return database.insertAll('food', [data])
-        })
-        .then(() => {
-          document.body.appendChild(foodItem)
-          foodEditor.nameInput.value = ''
-        })
+        return submitButton
       }
+
+      const SignButton = () => {
+        let signButton = document.createElement('div')
+        signButton.classList.add('signButton')
+        signButton.hidden = true
+        signButton.textContent = 'Sign'
+        signButton.addEventListener('click', (event) => {
+          if (signButton.classList.contains('active')) {
+            let data = foodEditor.compileData()
+
+            let foodItem = document.createElement('food-item')
+            foodItem.update(data)
+            foodItem.build()
+            .then((transaction) => {
+              data.timeStamp = Date.now()
+              data.status = 'SIGNED'
+              data.transaction = transaction
+              return database.insertAll('food', [data])
+            })
+            .then(() => {
+              document.body.insertBefore(foodItem, submitButton)
+              foodEditor.nameInput.value = ''
+            })
+          }
+        })
+
+        return signButton
+      }
+
+      window.foodEditor = document.createElement('food-editor')
+      foodEditor.NameAddressStateChange = (state) => {
+        if (state === 'NON-EXISTS') signButton.classList.add('active')
+      }
+      foodEditor.inputStateChange = (state) => {
+        if (state === 'NON-EMPTY') signButton.hidden = false
+        if (state === 'EMPTY') signButton.hidden = true
+        signButton.classList.remove('active')
+      }
+
       document.body.appendChild(foodEditor)
+
+      let signButton = SignButton()
+      document.body.appendChild(signButton)
+
+      let submitButton = SubmitButton()
+      document.body.appendChild(submitButton)
+      
 
       database.matchOnly('food', 'status', 'SIGNED')
       .then((data) => {
         data.forEach((v) => {
           let foodItem = document.createElement('food-item')
-          foodItem.update(v)
+          let data = Object.assign({}, v)
+          delete data.status
+          delete data.transaction
+          delete data.timeStamp
 
-          document.body.appendChild(foodItem)
+          foodItem.update(data)
+          document.body.insertBefore(foodItem, submitButton)
         })
       })
 
