@@ -30,7 +30,6 @@ test
 })
 ('NON-EXISTS Name Address', async t => {
  await t.expect(signButton.hasClass('active')).ok('sign button should be activated')
- // .debug()
 })
 
 test
@@ -102,10 +101,18 @@ test
 })
 
 test
-.skip
-.page(`http://localhost:8002/test/fixture/foodPage.html`)
+.requestHooks(nonExistsAddressStateRequest)
+.before(async t => {
+  await t.typeText(nameInput, 'apple')
+  .click(selector)
+  .click(selector.find('option').withText('Energy'))
+  .typeText(nutrientTable.find('.constituent#Energy input'), '95')
+  .click(signButton)
+  await t.eval(() => { window.location.reload() })
+  
+})
 ('Display signed data', async t => {
-  await t.expect(foodItem.find('div').withText('signedapple').exists).ok('should have a food Item displayed')
+  await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')
 })
 .after(async t => {
   let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
