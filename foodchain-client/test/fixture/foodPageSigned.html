@@ -13,6 +13,18 @@
       body {
         background-color: whitesmoke;
       }
+
+      div.submitButton {
+        height: 30px;
+        width: 60px;
+        line-height:30px;
+        text-align: center;
+        background-color: white;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        float: right;
+        font-family: sans-serif;
+      }
     </style>
   </head>
   <body>
@@ -25,6 +37,19 @@
 
       import foodItem from '../../src/foodItem.js'
       customElements.define('food-item', foodItem)
+
+      import { generateNewKey, importKey, Sawtooth } from '../../src/sawtooth.js'
+
+      let key
+      try {
+        key = importKey()
+      } catch (error) {
+        if (error.message === 'there is no key') generateNewKey()
+      }
+
+      window.sawtooth = new Sawtooth(key)
+      // sawtooth.init(['../../dist/external/proto/batch.proto', '../../dist/external/proto/transaction.proto'])
+
     </script>
 
     <script type='module'>
@@ -79,6 +104,7 @@
         let now = new Date()
         data.timeStamp = now.valueOf()
         data.status = 'SIGNED'
+
         database.insertAll('food', [data])
 
         document.body.appendChild(foodItem)
@@ -91,14 +117,31 @@
 
     <script type='module'>
       let data = {
-        name: 'apple',
+        name: 'signedapple',
         status: 'SIGNED',
         timeStamp: Date.now()
       }
       database.insertAll('food', [data])
+      .catch((event) => {
+        if (event.target.error.messsage = 'Key already exists in the object store.') {
+          console.log('ignore this for now')
+        }
+      })
     </script>
 
     <script type='module'>
+      function SubmitButton () {
+        let submitButton = document.createElement('div')
+        submitButton.classList.add('submitButton')
+        submitButton.textContent = 'Submit'
+
+        submitButton.addEventListener('click', (event) => {
+          
+        })
+
+        return submitButton
+      }
+
       database.matchOnly('food', 'status', 'SIGNED')
       .then((data) => {
         data.forEach((v) => {
@@ -107,6 +150,11 @@
 
           document.body.appendChild(foodItem)
         })
+
+        if (data.length > 0) {
+          let submitButton = SubmitButton()
+          document.body.appendChild(submitButton)
+        }
       })
     </script>
   </body>

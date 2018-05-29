@@ -1,3 +1,4 @@
+import proto from './sawtooth.proto.js'
 const ec = new elliptic.ec('secp256k1')
 
 const generateNewKey = function () {
@@ -19,11 +20,7 @@ const importKey = function (hex) {
 class Sawtooth {
   constructor  (key) {
     this.key = key
-  }
-
-  async init (protoFiles) {
-     this.proto = await protobuf.load(protoFiles)
-     console.log('protobuf is loaded')
+    this.proto = protobuf.Root.fromJSON(proto)
   }
 
   buildTransaction (header, payload, batcherKey) {
