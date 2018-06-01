@@ -54,7 +54,7 @@ class Sawtooth {
       let transaction = this.proto.Transaction.create({
         header: headerBytes,
         headerSignature: signatureHex,
-        payload: payloadBytes
+        payload: new Uint8Array(payloadBytes)
       })
 
       return Promise.resolve(transaction)
