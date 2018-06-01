@@ -17,12 +17,13 @@
       .signButton {
         height: 30px;
         width: 60px;
+        position: relative;
+        left: calc(100% - 60px);
         line-height:30px;
         text-align: center;
         background-color: white;
         margin-top: 10px;
         margin-bottom: 20px;
-        float: right;
         font-family: sans-serif;
         color: lightgrey;
       }
@@ -135,8 +136,12 @@
               return database.insertAll('food', [data])
             })
             .then(() => {
-              document.body.insertBefore(foodItem, submitButton)
+              foodEditor.nutrientTable.shadow.querySelectorAll('.constituent').forEach((n) => {
+                n.remove()
+              })
               foodEditor.nameInput.value = ''
+              foodEditor.nutrientTable.selector.hidden = true
+              document.body.insertBefore(foodItem, submitButton)
             })
           }
         })

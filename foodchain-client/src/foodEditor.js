@@ -89,7 +89,6 @@ function updateAddressState (name) {
   switch (name) {
     case 'NON-EXISTS':
       this.nameAddressState.innerHTML = 'new food'
-      // this.signButton.classList.add('active')
       this.NameAddressStateChange('NON-EXISTS')
       break
   }
@@ -101,7 +100,6 @@ const NameInput = function () {
   nameInput.classList.add(styleSheet.classes.nameInput)
 
   nameInput.addEventListener('keyup', (event) => {
-    // let selector = this.nutrientTable.querySelector('#selector')
     let selector = this.nutrientTable.selector
     let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
     let constituentExists = this.nutrientTable.shadow.querySelector('.constituent')
@@ -109,16 +107,12 @@ const NameInput = function () {
     if (name !== '' && selector.hidden) {
       selector.hidden = false
       this.inputStateChange('NON-EMPTY')
-      // this.signButton.hidden = false
     }
 
     if (name === '' && !selector.hidden && !constituentExists) {
       selector.hidden = true
       this.inputStateChange('EMPTY')
-      // this.signButton.hidden = true
     }
-
-    // this.signButton.classList.remove('active')
   })
 
   nameInput.addEventListener('change', (event) => {
@@ -155,13 +149,8 @@ export default class foodEditor extends HTMLElement {
     this.nameAddressState.classList.add(styleSheet.classes.nameAddressState)
     this.container.appendChild(this.nameAddressState)
 
-    // this.nutrientTable = NutrientTable()
     this.nutrientTable = document.createElement('nutrient-table')
     this.container.appendChild(this.nutrientTable)
-
-    // this.signButton = SignButton.call(this)
-    // this.signButton.hidden = true
-    // this.shadow.appendChild(this.signButton)
   }
 
   compileData () {

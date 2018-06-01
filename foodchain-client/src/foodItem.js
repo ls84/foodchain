@@ -4,7 +4,6 @@ JSS.use(jssNested.default())
 
 const styles = {
   'container': {
-    'clear': 'both',
     'padding': '10px',
     'margin-bottom': '10px',
     'background-color': 'white',
