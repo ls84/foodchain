@@ -6,6 +6,7 @@
   "scripts": {
     "test": "testcafe --ports 8000,8001 --hostname localhost remote:1 test/",
     "dev": "testcafe --debug-on-fail --ports 8000,8001 --hostname localhost remote:1 test/ -a 'npm run serve' --app-init-delay 3000",
+    "debug": "testcafe --debug-mode --debug-on-fail --ports 8000,8001 --hostname localhost remote:1 test/ -a 'npm run serve' --app-init-delay 3000",
     "serve": "http-server . -p 8002 -c -1"
   },
   "author": "Liu Shuo",
