@@ -13,7 +13,6 @@ const signButton = Selector('.signButton')
 const nameInput = foodEditor.find('.nameInput')
 const selector = nutrientTable.find('.constituentSelector select')
 
-
 const blurInput = ClientFunction(() => {
   foodEditor.nameInput.blur()
 })
@@ -21,6 +20,30 @@ const blurInput = ClientFunction(() => {
 const nonExistsAddressStateRequest = RequestMock()
 .onRequestTo(new RegExp('/state'))
 .respond({data: []}, 200)
+
+const signApple = async (t) => {
+  await t.typeText(nameInput, 'apple')
+  .click(selector)
+  .click(selector.find('option').withText('Protein'))
+  .typeText(nutrientTable.find('.constituent#Protein input'), '0.5')
+  .click(selector)
+  .click(selector.find('option').withText('Energy'))
+  .typeText(nutrientTable.find('.constituent#Energy input'), '95')
+  await blurInput()
+  await t.click(signButton)
+}
+
+const signBanana = async (t) => {
+  await t.typeText(nameInput, 'banana')
+  .click(selector)
+  .click(selector.find('option').withText('Protein'))
+  .typeText(nutrientTable.find('.constituent#Protein input'), '1.3')
+  .click(selector)
+  .click(selector.find('option').withText('Energy'))
+  .typeText(nutrientTable.find('.constituent#Energy input'), '105')
+  await blurInput()
+  await t.click(signButton)
+}
 
 test
 .requestHooks(nonExistsAddressStateRequest)
@@ -35,12 +58,7 @@ test
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(nameInput, 'apple')
-  .click(selector)
-  .click(selector.find('option').withText('Energy'))
-  .typeText(nutrientTable.find('.constituent#Energy input'), '95')
-  await blurInput()
-  await t.click(signButton)
+  await signApple(t)
 })
 ('Sign a "NON-EXISTS" food', async t => {
   let databaseState = ClientFunction(() => database.matchOnly('food', 'name', 'apple'))
@@ -60,13 +78,8 @@ test
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t  => {
-  await t.typeText(nameInput, 'apple')
-  await blurInput()
-  await t.click(signButton)
-
-  await t.typeText(nameInput, 'banana')
-  await blurInput()
-  await t.click(signButton)
+  await signApple(t)
+  await signBanana(t)
 })
 ('Sign multiple food', async t => {
   let firstItem = Selector(() => document.querySelectorAll('food-item')[0].shadow)
@@ -83,17 +96,15 @@ test
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(nameInput, 'apple')
-  .click(selector)
-  .click(selector.find('option').withText('Energy'))
-  .typeText(nutrientTable.find('.constituent#Energy input'), '95')
-  .click(signButton)
-  .click(foodItem.find('.container'))
+  await signApple(t)
+  await t.click(foodItem.find('.container'))
 })
 ('Review a singed food', async t => {
-  let getValue = ClientFunction(() => document.querySelector('food-item').nutrientTable.shadow.querySelector('.constituent input').value)
+  let getProtein = ClientFunction(() => document.querySelector('food-item').nutrientTable.shadow.querySelector('.constituent#Protein input').value)
+  let getEnergy = ClientFunction(() => document.querySelector('food-item').nutrientTable.shadow.querySelector('.constituent#Energy input').value)
   await t.expect(foodItemTable.find('.constituent div:nth-child(2)').withText('Energy').exists).ok('should show constituent name')
-  .expect(getValue()).eql('95', 'should show constituent value')
+  .expect(getProtein()).eql('0.5', 'should have correct "Protein" value')
+  .expect(getEnergy()).eql('95', 'should have correct "Energy" value')
 })
 .after(async t => {
   let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
@@ -103,13 +114,8 @@ test
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(nameInput, 'apple')
-  .click(selector)
-  .click(selector.find('option').withText('Energy'))
-  .typeText(nutrientTable.find('.constituent#Energy input'), '95')
-  .click(signButton)
+  await signApple(t)
   await t.eval(() => { window.location.reload() })
-  
 })
 ('Display signed data', async t => {
   await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')

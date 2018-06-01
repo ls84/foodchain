@@ -32,6 +32,20 @@
         color: black
       }
 
+      .submitButton {
+        height: 30px;
+        width: 60px;
+        position: relative;
+        left: calc(100% - 60px);
+        line-height:30px;
+        text-align: center;
+        background-color: white;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-family: sans-serif;
+        color: black;
+      }
+
     </style>
   </head>
   <body>
@@ -180,6 +194,8 @@
           foodItem.update(data)
           document.body.insertBefore(foodItem, submitButton)
         })
+
+        if (data.length > 0) submitButton.hidden = false
       })
 
     </script>
