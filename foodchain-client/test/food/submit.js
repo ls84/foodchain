@@ -4,18 +4,7 @@ fixture
 ('Submit Signed Food')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
-// const foodEditor = Selector(() => foodEditor.shadow)
-// const nutrientTable = Selector(() => foodEditor.nutrientTable.shadow)
-// const foodItem = Selector(() => document.querySelector('food-item').shadow)
-
-// const nameInput = foodEditor.find('.nameInput')
-// const signButton = foodEditor.find('.signButton')
-// const selector = nutrientTable.find('.constituentSelector select')
 const submitButton = Selector(() => document.querySelector('.submitButton'))
-
-// const nonExistsAddressStateRequest = RequestMock()
-// .onRequestTo(new RegExp('/state'))
-// .respond({data: []}, 200)
 
 const injectApple = ClientFunction(() => {
   let data = {
@@ -24,6 +13,19 @@ const injectApple = ClientFunction(() => {
     Energy: 95,
     status: 'SIGNED',
     transaction: {headerSignature: '16e6a9f751a3'},
+    timeStamp: Date.now()
+  }
+
+  database.insertAll('food', [data])
+})
+
+const injectBanana = ClientFunction(() => {
+  let data = {
+    name: 'banana',
+    Protein: 1.3,
+    Energy: 105,
+    status: 'SIGNED',
+    transaction: {headerSignature: '26e6a9f751a3'},
     timeStamp: Date.now()
   }
 
@@ -49,7 +51,6 @@ test
 })
 
 test
-.only
 .requestHooks(goodSubmitRecipt)
 .before(async t => {
   await injectApple()
@@ -71,3 +72,22 @@ test
   await removeSignedData()
 })
 
+
+test
+.requestHooks(goodSubmitRecipt)
+.before(async t => {
+  await injectApple()
+  await injectBanana()
+  await t.eval(() => { window.location.reload() })
+  await t.click(submitButton)
+
+})
+('submit multiple signed food', async t => {
+  const submittedFoodItem = Selector(() => document.querySelector('food-item[data-status="SUBMITTED"]'))
+  await t.expect(submittedFoodItem.exists).ok('should have one food-item')
+  .expect(submittedFoodItem.nextSibling().exists).ok('should have two food-item')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple', 'banana']))
+  await removeSignedData()
+})

@@ -7,7 +7,10 @@ const styles = {
     'padding': '10px',
     'margin-bottom': '10px',
     'background-color': 'white',
-    'font-family': 'sans-serif'
+    'font-family': 'sans-serif',
+    '&.submitted': {
+      'background-color': 'lightyellow'
+    }
   },
   'name': {
     'height': '35px',
@@ -19,6 +22,9 @@ const styles = {
 const styleSheet = JSS.createStyleSheet(styles)
 
 export default class foodItem extends HTMLElement {
+
+  static get observedAttributes() { return ['data-status'] }
+
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -43,6 +49,10 @@ export default class foodItem extends HTMLElement {
     })
 
     this.shadow.appendChild(this.container)
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'data-status' && newValue === 'SUBMITTED') this.container.classList.add('submitted')
   }
 
   update (data) {
