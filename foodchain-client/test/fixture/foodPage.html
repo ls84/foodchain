@@ -125,7 +125,37 @@
         submitButton.hidden = true
         submitButton.textContent = 'Submit'
         submitButton.addEventListener('click', (event) => {
-          // if (submitButton.classList.contains('active') && this.submit !== undefined) this.submit()
+          let signedData
+          database.matchOnly('food', 'status', 'SIGNED')
+          .then((data) => {
+            signedData = data
+            let transactions = data.map(v => v.transaction)
+            return sawtooth.buildBatch(transactions)
+          })
+          .then((batch) => {
+            return sawtooth.send([batch], `${serverAddress}/batches`)
+          })
+          .then((response) => {
+            let params = (new URL(response.link)).searchParams
+            let batchID = params.get('id')
+
+            let submittedData = signedData.map((v) => {
+              v.batchID = batchID
+              v.status = 'SUBMITTED'
+              return v
+            })
+            return database.updateAll('food', submittedData)
+          })
+          .then((updated) => {
+            let foodItems = document.querySelectorAll('food-item')
+            foodItems.forEach((v) => {
+              v.setAttribute('data-status', 'SUBMITTED')
+              document.body.appendChild(v)
+            })
+          })
+          .catch((error) => {
+            console.log(error)
+          })
         })
 
         return submitButton
@@ -150,12 +180,15 @@
               return database.insertAll('food', [data])
             })
             .then(() => {
-              foodEditor.nutrientTable.shadow.querySelectorAll('.constituent').forEach((n) => {
+              foodEditor.nutrientTable.shadow.querySelectorAll('li:not(.constituentSelector)').forEach((n) => {
                 n.remove()
               })
               foodEditor.nameInput.value = ''
+              foodEditor.addressNameState
               foodEditor.nutrientTable.selector.hidden = true
+              signButton.hidden = true
               document.body.insertBefore(foodItem, submitButton)
+              submitButton.hidden = false
             })
           }
         })
