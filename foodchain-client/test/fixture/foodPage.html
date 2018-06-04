@@ -137,9 +137,13 @@
           }
         })
         .then((updated) => {
-          let foodItem = document.querySelector('food-item[data-status="SUBMITTED"]')
-          foodItem.setAttribute('data-status', 'COMITTED')
-          document.body.appendChild(foodItem)
+          let foodItems = document.querySelectorAll('food-item[data-status="SUBMITTED"]')
+          foodItems.forEach((f) => {
+            if (f.name.innerText === data.name) {
+              f.setAttribute('data-status', 'COMITTED')
+              document.body.appendChild(f)
+            }
+          })
         })
         .catch((error) => {
           console.log(error)
