@@ -11,7 +11,7 @@ const config = {
   devServer: {
     contentBase: path.join(__dirname, './dist'),
     host: '0.0.0.0',
-    port: 8000,
+    port: 8003,
     https: {
       key: fs.readFileSync('./cert/localhost.key'),
       cert: fs.readFileSync('./cert/localhost.crt'),

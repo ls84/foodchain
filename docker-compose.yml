@@ -6,5 +6,5 @@ services:
     volumes:
       - .:/foodchain
     ports:
-      - 8000:8000
+      - 8003:8003
     entrypoint: ['tail', '-f', '/dev/null']

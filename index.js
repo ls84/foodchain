@@ -74,6 +74,7 @@ const foodPage = () => {
         return sawtoothSign.buildTransaction(header, payload)
       })
       .then((transaction) => {
+        console.log(transaction)
         data.transaction = transaction
         return database.insertAll('food', [data])
       })
@@ -193,35 +194,35 @@ const timeNow = () => {
   }
 }
 
-let myAddress = '100000' + key.getPublic().encodeCompressed('hex').substr(2,64)
-window.fetch(`https://bismuth83.net/state/${myAddress}`, {
-  headers: {'Content-Type': 'application/json'},
-  method: 'GET',
-  mode: 'cors'
-})
-.then((response) => {
-  if (!response.ok) return Promise.reject(new Error('response is not okay'))
-  return response.json()
-})
-.then((json) => {
-  let data = cbor.decode(b64ToBuffer(json.data))
-  console.log(data)
-  updateData = data.map((v) => {
-    return {
-      datetime: v.datetime,
-      food: v.food,
-      timeStamp: v.datetime,
-      status: 'COMMITTED'
-    }
-  })
-  return database.updateAll('consumption', updateData)
-})
-.then((result) => {
-  console.log('synced my address', result)
-})
-.catch((error) => {
-  console.log(result)
-})
+// let myAddress = '100000' + key.getPublic().encodeCompressed('hex').substr(2,64)
+// window.fetch(`https://bismuth83.net/state/${myAddress}`, {
+//   headers: {'Content-Type': 'application/json'},
+//   method: 'GET',
+//   mode: 'cors'
+// })
+// .then((response) => {
+//   if (!response.ok) return Promise.reject(new Error('response is not okay'))
+//   return response.json()
+// })
+// .then((json) => {
+//   let data = cbor.decode(b64ToBuffer(json.data))
+//   console.log(data)
+//   updateData = data.map((v) => {
+//     return {
+//       datetime: v.datetime,
+//       food: v.food,
+//       timeStamp: v.datetime,
+//       status: 'COMMITTED'
+//     }
+//   })
+//   return database.updateAll('consumption', updateData)
+// })
+// .then((result) => {
+//   console.log('synced my address', result)
+// })
+// .catch((error) => {
+//   console.log(result)
+// })
 
 const minePage = () => {
   if (state !== 'mine') {
