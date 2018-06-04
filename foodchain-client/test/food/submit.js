@@ -32,9 +32,27 @@ const injectBanana = ClientFunction(() => {
   database.insertAll('food', [data])
 })
 
-const goodSubmitRecipt = RequestMock()
+const injectSubmittedApple = ClientFunction(() => {
+  let data = {
+    name: 'apple',
+    Protein: 0.5,
+    Energy: 95,
+    status: 'SUBMITTED',
+    transaction: {headerSignature: '16e6a9f751a3'},
+    timeStamp: Date.now(),
+    batchID: '35e805cddc'
+  }
+
+  database.insertAll('food', [data])
+})
+
+const goodSubmission = RequestMock()
 .onRequestTo(/\/batches/)
 .respond({link:'https://bismuth83.net//batch_statuses?id=35e805cddc'}, 200)
+
+const goodConfirmation = RequestMock()
+.onRequestTo(/\/batch_status/)
+.respond({status: 'COMMITTED'}, 200)
 
 test
 .before(async t => {
@@ -51,7 +69,7 @@ test
 })
 
 test
-.requestHooks(goodSubmitRecipt)
+.requestHooks(goodSubmission)
 .before(async t => {
   await injectApple()
   await t.eval(() => { window.location.reload() })
@@ -72,9 +90,27 @@ test
   await removeSignedData()
 })
 
+test
+.requestHooks(goodConfirmation)
+.before(async t => {
+  let submittedFoodItem = Selector(() => document.querySelector('food-item[data-status="SUBMITTED"]').shadow)
+
+  await injectSubmittedApple()
+  await t.eval(() => { window.location.reload() })
+  await t.click(submittedFoodItem.find('.container'))
+})
+('confirm a submitted food-items', async t => {
+  let comittedFoodItem = Selector(() => document.querySelector('food-item[data-status="COMITTED"]').shadow)
+  await t.expect(comittedFoodItem.exists).ok('confirmed food should become commited')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
+  await removeSignedData()
+})
+
 
 test
-.requestHooks(goodSubmitRecipt)
+.requestHooks(goodSubmission)
 .before(async t => {
   await injectApple()
   await injectBanana()

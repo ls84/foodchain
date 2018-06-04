@@ -32,6 +32,8 @@ export default class foodItem extends HTMLElement {
     style.textContent = styleSheet.toString()
     this.shadow.appendChild(style)
 
+    this.data = {}
+
     this.container = document.createElement('div')
     this.container.classList.add('container')
 
@@ -43,9 +45,18 @@ export default class foodItem extends HTMLElement {
     this.nutrientTable.container.hidden = true
     this.container.append(this.nutrientTable)
 
-    this.container.addEventListener('click', () => {
-      let currentState = this.nutrientTable.container.hidden
-      this.nutrientTable.container.hidden = (currentState) ? false : true
+    this.container.addEventListener('click', (event) => {
+      let status = this.getAttribute('data-status')
+      switch (status) {
+        case null:
+          let currentState = this.nutrientTable.container.hidden
+          this.nutrientTable.container.hidden = (currentState) ? false : true
+          break
+        case 'SUBMITTED':
+          if (!this.confirmSubmission) throw new Error('confirm function is not defined')
+          this.confirmSubmission(this.data)
+          break
+      }
     })
 
     this.shadow.appendChild(this.container)
@@ -56,10 +67,10 @@ export default class foodItem extends HTMLElement {
   }
 
   update (data) {
-    this.data = Object.assign({}, data)
+    this.data = Object.assign(this.data, data)
     if (this.data.name) this.name.textContent = this.data.name
     for (let property in this.data) {
-      if (property !== 'name') this.nutrientTable.addConstituent(property, this.data[property])
+      if (!/name|status|transaction|timeStamp/.test(property)) this.nutrientTable.addConstituent(property, this.data[property])
     }
   }
 

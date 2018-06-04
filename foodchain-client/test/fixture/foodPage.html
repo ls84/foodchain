@@ -119,6 +119,33 @@
         }
       }
 
+      const confirmSubmission = (data) => {
+        window.fetch(`${serverAddress}/batch_statuses`, {
+          body: JSON.stringify(data.batchID),
+          headers: {'Content-Type': 'application/json'},
+          method: 'POST',
+          mode: 'cors'
+        })
+        .then((response) => {
+          if (!response.ok) return Promise.reject(new Error('response is not okay'))
+          return response.json()
+        })
+        .then((json) => {
+          if (json.status === 'COMITTED') {
+            data.status = 'COMITTED'
+            return database.updateAll('food', [data])
+          }
+        })
+        .then((updated) => {
+          let foodItem = document.querySelector('food-item[data-status="SUBMITTED"]')
+          foodItem.setAttribute('data-status', 'COMITTED')
+          document.body.appendChild(foodItem)
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+      }
+
       const SubmitButton = () => {
         let submitButton = document.createElement('div')
         submitButton.classList.add('submitButton')
@@ -126,6 +153,7 @@
         submitButton.textContent = 'Submit'
         submitButton.addEventListener('click', (event) => {
           let signedData
+          let batchID
           database.matchOnly('food', 'status', 'SIGNED')
           .then((data) => {
             signedData = data
@@ -137,7 +165,7 @@
           })
           .then((response) => {
             let params = (new URL(response.link)).searchParams
-            let batchID = params.get('id')
+            batchID = params.get('id')
 
             let submittedData = signedData.map((v) => {
               v.batchID = batchID
@@ -150,6 +178,8 @@
             let foodItems = document.querySelectorAll('food-item')
             foodItems.forEach((v) => {
               v.setAttribute('data-status', 'SUBMITTED')
+              v.batchID = batchID
+              v.confirmSubmission = confirmSubmission
               document.body.appendChild(v)
             })
             submitButton.hidden = true
@@ -216,20 +246,42 @@
       document.body.appendChild(submitButton)
       
 
-      database.matchOnly('food', 'status', 'SIGNED')
-      .then((data) => {
-        data.forEach((v) => {
+      // database.matchOnly('food', 'status', 'SIGNED')
+      // .then((data) => {
+      //   data.forEach((v) => {
+      //     let foodItem = document.createElement('food-item')
+      //     let data = Object.assign({}, v)
+      //     delete data.status
+      //     delete data.transaction
+      //     delete data.timeStamp
+
+      //     foodItem.update(data)
+      //     document.body.insertBefore(foodItem, submitButton)
+      //   })
+
+      //   if (data.length > 0) submitButton.hidden = false
+      // })
+
+      database.getAll('food')
+      .then(data => {
+        data.forEach((d) => {
           let foodItem = document.createElement('food-item')
-          let data = Object.assign({}, v)
-          delete data.status
-          delete data.transaction
-          delete data.timeStamp
+          foodItem.update(d)
 
-          foodItem.update(data)
-          document.body.insertBefore(foodItem, submitButton)
+          switch (d.status) {
+            case 'SIGNED':
+              document.body.insertBefore(foodItem, submitButton)
+
+              break
+            case 'SUBMITTED':
+              foodItem.setAttribute('data-status', 'SUBMITTED')
+              foodItem.confirmSubmission = confirmSubmission
+              document.body.insertBefore(foodItem, submitButton)
+              
+              break
+          }
         })
-
-        if (data.length > 0) submitButton.hidden = false
+        if (data.filter(d => d.status === 'SIGNED')) submitButton.hidden = false
       })
 
     </script>
