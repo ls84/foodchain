@@ -270,7 +270,7 @@
               break
           }
         })
-        if (data.filter(d => d.status === 'SIGNED')) submitButton.hidden = false
+        if (data.filter(d => d.status === 'SIGNED').length > 0) submitButton.hidden = false
       })
 
     </script>
