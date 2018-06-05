@@ -17,6 +17,12 @@ const styles = {
         'padding-left': '25px'
       }
     },
+    '&.review': {
+      'margin-top': '10px',
+      '& .remove': {
+        'visibility': 'hidden'
+      }
+    },
     '& .constituent': {
         'font-weight': '100',
       '& div:nth-child(1)': {
@@ -171,6 +177,9 @@ const Selector = function () {
 }
 
 export default class nutrientTable extends HTMLElement {
+
+  static get observedAttributes() { return ['data-review'] }
+
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -185,6 +194,19 @@ export default class nutrientTable extends HTMLElement {
     this.selector = Selector.call(this)
   }
   
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'data-review') {
+     switch (newValue) {
+      case 'true':
+        this.container.classList.value = 'container review'
+        break
+      case 'false':
+        this.container.classList.value = 'container'
+     }
+    }
+  }
+  
   addConstituent (name, value) {
     let constituentExists = this.container.querySelector(`#${name}`)
     if (!constituentExists) {
@@ -193,9 +215,6 @@ export default class nutrientTable extends HTMLElement {
         let input = constituent.querySelector('input')
         input.value = value
         input.disabled = true
-        
-        let remove = constituent.querySelector('.remove')
-        remove.hidden = true
       }
       if (name === 'Energy') {
         constituent.querySelector('.remove').addEventListener('click', () => {

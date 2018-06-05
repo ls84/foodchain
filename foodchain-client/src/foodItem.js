@@ -52,6 +52,7 @@ export default class foodItem extends HTMLElement {
         case 'COMMITTED':
           let currentState = this.nutrientTable.container.hidden
           this.nutrientTable.container.hidden = (currentState) ? false : true
+          this.container.classList.value = 'container' 
           break
         case 'SUBMITTED':
           if (!this.confirmSubmission) throw new Error('confirm function is not defined')
@@ -64,10 +65,24 @@ export default class foodItem extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    //TODO: use className to hide functionality of it's status
-    if (name === 'data-status' && newValue === 'SIGNED') this.container.classList.add('signed')
-    if (name === 'data-status' && newValue === 'SUBMITTED') this.container.classList.add('submitted')
-    if (name === 'data-status' && newValue === 'COMMITTED') this.container.classList.remove('submitted')
+    if (name === 'data-status') {
+      switch (newValue) {
+        case 'SIGNED':
+          this.container.classList.add('signed')
+          this.nutrientTable.setAttribute('data-review', true)
+          break
+
+        case 'SUBMITTED':
+          this.container.classList.add('submitted')
+          this.nutrientTable.setAttribute('data-review', true)
+          break
+
+        case 'COMMITTED':
+          this.container.classList.add('committed')
+          this.nutrientTable.setAttribute('data-review', true)
+          break
+      }
+    }
   }
 
   init (data, source) {
