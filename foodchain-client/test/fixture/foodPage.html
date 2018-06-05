@@ -259,8 +259,14 @@
             case 'SUBMITTED':
               foodItem.setAttribute('data-status', 'SUBMITTED')
               foodItem.confirmSubmission = confirmSubmission.bind(foodItem)
-              document.body.insertBefore(foodItem, submitButton)
+              document.body.appendChild(foodItem)
               
+              break
+
+            case 'COMITTED':
+              foodItem.setAttribute('data-status', 'COMITTED')
+              document.body.appendChild(foodItem)
+
               break
           }
         })
