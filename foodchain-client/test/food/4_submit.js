@@ -9,8 +9,11 @@ const submitButton = Selector(() => document.querySelector('.submitButton'))
 const injectApple = ClientFunction(() => {
   let data = {
     name: 'apple',
-    Protein: 0.5,
-    Energy: 95,
+    food: {
+      name: 'apple',
+      Protein: 0.5,
+      Energy: 95
+    },
     status: 'SIGNED',
     transaction: {headerSignature: '16e6a9f751a3'},
     timeStamp: Date.now()
@@ -22,8 +25,11 @@ const injectApple = ClientFunction(() => {
 const injectBanana = ClientFunction(() => {
   let data = {
     name: 'banana',
-    Protein: 1.3,
-    Energy: 105,
+    food: {
+      name: 'banana',
+      Protein: 1.3,
+      Energy: 105
+    },
     status: 'SIGNED',
     transaction: {headerSignature: '26e6a9f751a3'},
     timeStamp: Date.now()
@@ -56,7 +62,6 @@ test
   await injectApple()
   await t.eval(() => { window.location.reload() })
   await t.click(submitButton)
-
 })
 ('successful submition', async t => {
   const submittedFoodItem = Selector(() => document.querySelector('food-item[data-status="SUBMITTED"]'))

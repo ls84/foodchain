@@ -204,7 +204,7 @@
 
             let foodItem = document.createElement('food-item')
             foodItem.setAttribute('data-status', 'SIGNED')
-            foodItem.update(data)
+            foodItem.init(data, 'EDITOR')
             foodItem.build()
             .then((data) => {
               return database.insertAll('food', [data])
@@ -248,7 +248,7 @@
       .then(data => {
         data.forEach((d) => {
           let foodItem = document.createElement('food-item')
-          foodItem.update(d)
+          foodItem.init(d, 'DATABASE')
 
           switch (d.status) {
             case 'SIGNED':

@@ -70,24 +70,37 @@ export default class foodItem extends HTMLElement {
     if (name === 'data-status' && newValue === 'COMMITTED') this.container.classList.remove('submitted')
   }
 
-  update (data) {
-    this.data = Object.assign(this.data, data)
-    if (this.data.name) this.name.textContent = this.data.name
-    for (let property in this.data) {
-      if (!/name|status|transaction|timeStamp/.test(property)) this.nutrientTable.addConstituent(property, this.data[property])
+  init (data, source) {
+    switch (source) {
+      case 'EDITOR':
+        this.data.name = data.name
+        this.data.food = data
+        break
+      case 'DATABASE':
+        this.data.name = data.food.name
+        this.data.food = data.food
+        this.data.transaction = data.transaction
+        break
+    }
+    if (!this.data.name) throw new Error('data does not have a name')
+    this.name.textContent = this.data.name
+
+    for (let property in this.data.food) {
+      if (property !== 'name') this.nutrientTable.addConstituent(property, this.data.food[property])
     }
   }
 
   build () {
-    if (!this.data.name) throw new Error('data should have a name')
-    return sha256Hex(this.data.name)
+    let name = this.data.food.name
+    if (!name) throw new Error('data should have a name')
+    return sha256Hex(name)
     .then((hex) => {
       let address = '100000' + hex
       let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
       header.inputs = [address]
       header.outputs = [address] 
 
-      let payload = { action: 'create', food: this.data }
+      let payload = { action: 'create', food: this.data.food }
       return sawtooth.buildTransaction(header, payload)
     })
     .then((transaction) => {

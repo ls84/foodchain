@@ -7,8 +7,11 @@ fixture
 const injectSubmittedApple = ClientFunction(() => {
   let data = {
     name: 'apple',
-    Protein: 0.5,
-    Energy: 95,
+    food: {
+      name: 'apple',
+      Protein: 0.5,
+      Energy: 95
+    },
     status: 'SUBMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
     timeStamp: Date.now(),
@@ -21,8 +24,11 @@ const injectSubmittedApple = ClientFunction(() => {
 const injectComittedApple = ClientFunction(() => {
   let data = {
     name: 'apple',
-    Protein: 0.5,
-    Energy: 95,
+    food: {
+      name: 'apple',
+      Protein: 0.5,
+      Energy: 95,
+    },
     status: 'COMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
     timeStamp: Date.now(),
