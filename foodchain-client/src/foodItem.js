@@ -48,13 +48,14 @@ export default class foodItem extends HTMLElement {
     this.container.addEventListener('click', (event) => {
       let status = this.getAttribute('data-status')
       switch (status) {
-        case null:
+        case 'SIGNED':
+        case 'COMITTED':
           let currentState = this.nutrientTable.container.hidden
           this.nutrientTable.container.hidden = (currentState) ? false : true
           break
         case 'SUBMITTED':
           if (!this.confirmSubmission) throw new Error('confirm function is not defined')
-          this.confirmSubmission(this.data)
+          this.confirmSubmission()
           break
       }
     })
@@ -63,7 +64,10 @@ export default class foodItem extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
+    //TODO: use className to hide functionality of it's status
+    if (name === 'data-status' && newValue === 'SIGNED') this.container.classList.add('signed')
     if (name === 'data-status' && newValue === 'SUBMITTED') this.container.classList.add('submitted')
+    if (name === 'data-status' && newValue === 'COMMITTED') this.container.classList.remove('submitted')
   }
 
   update (data) {
@@ -85,6 +89,16 @@ export default class foodItem extends HTMLElement {
 
       let payload = { action: 'create', food: this.data }
       return sawtooth.buildTransaction(header, payload)
+    })
+    .then((transaction) => {
+      this.data.timeStamp = Date.now()
+      this.data.status = 'SIGNED'
+      this.data.transaction = transaction
+
+      return Promise.resolve(this.data)
+    })
+    .catch((error) => {
+      console.log(error)
     })
   }
 }

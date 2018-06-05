@@ -119,9 +119,9 @@
         }
       }
 
-      const confirmSubmission = (data) => {
+      const confirmSubmission = function () {
         window.fetch(`${serverAddress}/batch_statuses`, {
-          body: JSON.stringify(data.batchID),
+          body: JSON.stringify(this.data.batchID),
           headers: {'Content-Type': 'application/json'},
           method: 'POST',
           mode: 'cors'
@@ -132,18 +132,13 @@
         })
         .then((json) => {
           if (json.status === 'COMITTED') {
-            data.status = 'COMITTED'
-            return database.updateAll('food', [data])
+            this.data.status = 'COMITTED'
+            return database.updateAll('food', [this.data])
           }
         })
         .then((updated) => {
-          let foodItems = document.querySelectorAll('food-item[data-status="SUBMITTED"]')
-          foodItems.forEach((f) => {
-            if (f.name.innerText === data.name) {
-              f.setAttribute('data-status', 'COMITTED')
-              document.body.appendChild(f)
-            }
-          })
+          this.setAttribute('data-status', 'COMITTED')
+          document.body.appendChild(this)
         })
         .catch((error) => {
           console.log(error)
@@ -155,37 +150,39 @@
         submitButton.classList.add('submitButton')
         submitButton.hidden = true
         submitButton.textContent = 'Submit'
+
         submitButton.addEventListener('click', (event) => {
-          let signedData
-          let batchID
-          database.matchOnly('food', 'status', 'SIGNED')
-          .then((data) => {
-            signedData = data
-            let transactions = data.map(v => v.transaction)
-            return sawtooth.buildBatch(transactions)
+          let signedItems = document.querySelectorAll('food-item[data-status = "SIGNED"]')
+          let transactions = []
+          signedItems.forEach((i) => {
+            transactions.push(i.data.transaction)
           })
+          
+          return sawtooth.buildBatch(transactions)
           .then((batch) => {
             return sawtooth.send([batch], `${serverAddress}/batches`)
           })
           .then((response) => {
             let params = (new URL(response.link)).searchParams
-            batchID = params.get('id')
+            let batchID = params.get('id')
 
-            let submittedData = signedData.map((v) => {
-              v.batchID = batchID
-              v.status = 'SUBMITTED'
-              return v
+            let submittedData = []
+            signedItems.forEach((i) => {
+              i.data.status = 'SUBMITTED'
+              i.data.batchID = batchID
+
+              submittedData.push(i.data)
             })
+
             return database.updateAll('food', submittedData)
           })
           .then((updated) => {
-            let foodItems = document.querySelectorAll('food-item')
-            foodItems.forEach((v) => {
-              v.setAttribute('data-status', 'SUBMITTED')
-              v.batchID = batchID
-              v.confirmSubmission = confirmSubmission
-              document.body.appendChild(v)
+            signedItems.forEach((i) => {
+              i.setAttribute('data-status', 'SUBMITTED')
+              i.confirmSubmission = confirmSubmission.bind(i)
+              document.body.appendChild(i)
             })
+
             submitButton.hidden = true
           })
           .catch((error) => {
@@ -206,12 +203,10 @@
             let data = foodEditor.compileData()
 
             let foodItem = document.createElement('food-item')
+            foodItem.setAttribute('data-status', 'SIGNED')
             foodItem.update(data)
             foodItem.build()
-            .then((transaction) => {
-              data.timeStamp = Date.now()
-              data.status = 'SIGNED'
-              data.transaction = transaction
+            .then((data) => {
               return database.insertAll('food', [data])
             })
             .then(() => {
@@ -248,23 +243,6 @@
 
       let submitButton = SubmitButton()
       document.body.appendChild(submitButton)
-      
-
-      // database.matchOnly('food', 'status', 'SIGNED')
-      // .then((data) => {
-      //   data.forEach((v) => {
-      //     let foodItem = document.createElement('food-item')
-      //     let data = Object.assign({}, v)
-      //     delete data.status
-      //     delete data.transaction
-      //     delete data.timeStamp
-
-      //     foodItem.update(data)
-      //     document.body.insertBefore(foodItem, submitButton)
-      //   })
-
-      //   if (data.length > 0) submitButton.hidden = false
-      // })
 
       database.getAll('food')
       .then(data => {
@@ -274,12 +252,13 @@
 
           switch (d.status) {
             case 'SIGNED':
+              foodItem.setAttribute('data-status', 'SIGNED')
               document.body.insertBefore(foodItem, submitButton)
 
               break
             case 'SUBMITTED':
               foodItem.setAttribute('data-status', 'SUBMITTED')
-              foodItem.confirmSubmission = confirmSubmission
+              foodItem.confirmSubmission = confirmSubmission.bind(foodItem)
               document.body.insertBefore(foodItem, submitButton)
               
               break
