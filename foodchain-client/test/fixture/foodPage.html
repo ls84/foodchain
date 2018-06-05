@@ -83,23 +83,23 @@
     <script type='module'>
       window.serverAddress = ''
 
-      // database.update()
-      // .then((db) => {
-      //   let foodStore = db.createObjectStore('food', {keyPath: 'name'})
-      //   foodStore.createIndex('name', 'name', {unique: true})
-      //   foodStore.createIndex('status', 'status', {unique: false})
-      //   foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+      let request = database.indexedDB.open('foodChain')
+      request.onupgradeneeded = function (event) {
+        let db = event.target.result
+        let version = db.version
+        switch (version) {
+          case 1:
+            let foodStore = db.createObjectStore('food', {keyPath: 'name'})
+            foodStore.createIndex('name', 'name', {unique: true})
+            foodStore.createIndex('status', 'status', {unique: false})
+            foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
 
-      //   let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetime'})
-      //   consumptionStore.createIndex('datetime', 'datetime', {unique: true})
-      //   consumptionStore.createIndex('status', 'status', {unique: false})
-      //   consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
-
-      // })
-      // .catch((error) => {
-      //   if (error.name === 'ConstraintError') console.log('objectStore already created')
-      //   if (error.name !== 'ConstraintError') throw new Error(error)
-      // })
+            let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetime'})
+            consumptionStore.createIndex('datetime', 'datetime', {unique: true})
+            consumptionStore.createIndex('status', 'status', {unique: false})
+            consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
+        }
+      }
 
       const timeNow = () => {
         let datetime = new Date()
