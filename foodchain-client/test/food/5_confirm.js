@@ -21,7 +21,7 @@ const injectSubmittedApple = ClientFunction(() => {
   database.insertAll('food', [data])
 })
 
-const injectComittedApple = ClientFunction(() => {
+const injectCommittedApple = ClientFunction(() => {
   let data = {
     name: 'apple',
     food: {
@@ -29,7 +29,7 @@ const injectComittedApple = ClientFunction(() => {
       Protein: 0.5,
       Energy: 95,
     },
-    status: 'COMITTED',
+    status: 'COMMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
     timeStamp: Date.now(),
     batchID: '35e805cddc'
@@ -38,7 +38,7 @@ const injectComittedApple = ClientFunction(() => {
   database.insertAll('food', [data])
 })
 
-const removeComittedData = ClientFunction(() => {
+const removeCommittedData = ClientFunction(() => {
   database.deleteAll('food', ['apple'])
 })
 
@@ -56,23 +56,23 @@ test
   await t.click(submittedFoodItem.find('.container'))
 })
 ('confirm a submitted food-items', async t => {
-  let comittedFoodItem = Selector(() => document.querySelector('food-item[data-status="COMITTED"]').shadow)
-  await t.expect(comittedFoodItem.exists).ok('confirmed food should become commited')
+  let committedFoodItem = Selector(() => document.querySelector('food-item[data-status="COMMITTED"]').shadow)
+  await t.expect(committedFoodItem.exists).ok('confirmed food should become commited')
 })
 .after(async t => {
-  await removeComittedData()
+  await removeCommittedData()
 })
 
 
 test
 .before(async t => {
-  let comittedFoodItem = Selector(() => document.querySelector('food-item[data-status="COMITTED"]').shadow)
+  let committedFoodItem = Selector(() => document.querySelector('food-item[data-status="COMMITTED"]').shadow)
 
-  await injectComittedApple()
+  await injectCommittedApple()
   await t.eval(() => { window.location.reload() })
-  await t.click(comittedFoodItem.find('.container'))
+  await t.click(committedFoodItem.find('.container'))
 })
-('review comitted food', async t => {
+('review committed food', async t => {
   let foodItemTable = Selector(() => document.querySelector('food-item').nutrientTable.shadow)
 
   let getProtein = ClientFunction(() => document.querySelector('food-item').nutrientTable.shadow.querySelector('.constituent#Protein input').value)
@@ -82,5 +82,5 @@ test
   .expect(getEnergy()).eql('95', 'should have correct "Energy" value')
 })
 .after(async t => {
-  await removeComittedData()
+  await removeCommittedData()
 })

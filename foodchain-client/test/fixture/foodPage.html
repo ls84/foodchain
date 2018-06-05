@@ -131,13 +131,13 @@
           return response.json()
         })
         .then((json) => {
-          if (json.status === 'COMITTED') {
-            this.data.status = 'COMITTED'
+          if (json.status === 'COMMITTED') {
+            this.data.status = 'COMMITTED'
             return database.updateAll('food', [this.data])
           }
         })
         .then((updated) => {
-          this.setAttribute('data-status', 'COMITTED')
+          this.setAttribute('data-status', 'COMMITTED')
           document.body.appendChild(this)
         })
         .catch((error) => {
@@ -263,8 +263,8 @@
               
               break
 
-            case 'COMITTED':
-              foodItem.setAttribute('data-status', 'COMITTED')
+            case 'COMMITTED':
+              foodItem.setAttribute('data-status', 'COMMITTED')
               document.body.appendChild(foodItem)
 
               break

@@ -49,7 +49,7 @@ export default class foodItem extends HTMLElement {
       let status = this.getAttribute('data-status')
       switch (status) {
         case 'SIGNED':
-        case 'COMITTED':
+        case 'COMMITTED':
           let currentState = this.nutrientTable.container.hidden
           this.nutrientTable.container.hidden = (currentState) ? false : true
           break
