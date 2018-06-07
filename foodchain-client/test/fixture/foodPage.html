@@ -14,6 +14,24 @@
         background-color: whitesmoke;
       }
 
+      .searchInput {
+        width: 100%;
+        height: 42px;
+        padding-left: 10px;
+        font-size: 24px;
+        font-family: sans-serif;
+        margin-bottom: 10px;
+        border: none;
+        outline:none;
+      }
+      
+      .searchInput::placeholder {
+        padding-left: 10px;
+        font-size: 16px;
+        font-weight: 100;
+        color: lightgrey;
+      }
+
       .signButton {
         height: 30px;
         width: 60px;
@@ -82,6 +100,7 @@
 
     <script type='module'>
       window.serverAddress = ''
+      window.committedFood = []
 
       let request = database.indexedDB.open('foodChain')
       request.onupgradeneeded = function (event) {
@@ -226,6 +245,22 @@
         return signButton
       }
 
+      let searchInput = document.createElement('input')
+      searchInput.classList.value = 'searchInput'
+      searchInput.setAttribute('placeholder', 'Search Food Here...')
+      searchInput.addEventListener('keyup', (event) => {
+        let name = event.target.value
+        switch (name) {
+          case '' :
+            committedFood.forEach((e) => { e.hidden = false })
+            break
+          default :
+          committedFood.filter((e) => !new RegExp(name).test(e.name.textContent))
+          .forEach((e) => { e.hidden = true})
+        }
+      })
+      document.body.append(searchInput)
+
       window.foodEditor = document.createElement('food-editor')
       foodEditor.NameAddressStateChange = (state) => {
         if (state === 'NON-EXISTS') signButton.classList.add('active')
@@ -266,6 +301,7 @@
             case 'COMMITTED':
               foodItem.setAttribute('data-status', 'COMMITTED')
               document.body.appendChild(foodItem)
+              committedFood.push(foodItem)
 
               break
           }
