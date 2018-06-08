@@ -96,6 +96,8 @@ export default class foodItem extends HTMLElement {
         this.data.food = data.food
         this.data.transaction = data.transaction
         break
+      case 'BLOCK':
+        this.data.name = data.name
     }
     if (!this.data.name) throw new Error('data does not have a name')
     this.name.textContent = this.data.name

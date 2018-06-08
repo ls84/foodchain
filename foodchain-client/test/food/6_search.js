@@ -40,6 +40,31 @@ const injectCommittedBanana = ClientFunction(() => {
   database.insertAll('food', [data])
 })
 
+const myEmptyAddressState = RequestMock()
+.onRequestTo(new RegExp('/state'))
+.respond({
+  data: {
+    favourites: {}
+  }
+}, 200)
+
+const myAddressState = RequestMock()
+.onRequestTo(new RegExp('/state'))
+.respond({
+  data: {
+    favourites: {
+      'apple': {
+        timeStamp: Date.now(),
+        name: 'apple'
+      },
+      'orange': {
+        timeStamp: Date.now(),
+        name: 'orange'
+      }
+    }
+  }
+}, 200)
+
 test
 .before(async t => {
   await injectCommittedApple()
@@ -57,5 +82,28 @@ test
 })
 .after(async t => {
   let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple','banana']))
+  await removeSignedData()
+})
+
+
+test
+.before(async t => {
+  await t.addRequestHooks(myEmptyAddressState)
+  await injectCommittedApple()
+  await injectCommittedBanana()
+  await t.removeRequestHooks(myEmptyAddressState)
+  await t.eval(() => { window.location.reload() })
+  await t.addRequestHooks(myAddressState)
+})
+('sync with block', async t => {
+  let committedFood = Selector('food-item[data-status="COMMITTED"]')
+  let committedOrange = committedFood.filter(n => n.name.textContent === 'orange')
+  let committedBanana = committedFood.filter(n => n.name.textContent === 'banana')
+
+  await t.expect(committedOrange.exists).ok('should have an orange')
+  await t.expect(committedBanana.exists).notOk('should not have a banana')
+})
+.after(async t => {
+  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple','banana', 'orange']))
   await removeSignedData()
 })

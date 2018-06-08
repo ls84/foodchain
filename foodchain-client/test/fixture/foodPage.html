@@ -307,7 +307,82 @@
           }
         })
         if (data.filter(d => d.status === 'SIGNED').length > 0) submitButton.hidden = false
+        syncWithAddress()
       })
+
+      function fetchFavouriteData () {
+        let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
+        return window.fetch(`${serverAddress}/state/${myAddress}`, {
+          headers: {'Content-Type': 'application/json'},
+          method: 'GET',
+          mode: 'cors'
+        })
+        .then((response) => {
+          if (!response.ok) return Promise.reject(new Error('response is not okay'))
+          return response.json()
+        })
+        .then((json) => {
+          // TODO:
+          // let data = cbor.decode(b64ToBuffer(json.data))
+          let data = json.data
+          return Promise.resolve(data.favourites)
+        })
+      }
+
+      function unionWithLocal(favourites) {
+        return database.getAll('food')
+        .then((data) => {
+          let block = new Set(Object.keys(favourites))
+          let local = new Set(data.map((d) => d.name))
+
+          let add = new Set(block)
+          for (let n of local) {
+            add.delete(n)
+          }
+          let newData = []
+          add.forEach((n) => { newData.push(favourites[n]) })
+          newData.forEach((v,i,a) => { a[i].status = 'COMMITTED' })
+
+          let remove = new Set(local)
+          for (let n of block) {
+            remove.delete(n)
+          }
+          let removeData = Array.from(remove)
+
+          return Promise.all([database.insertAll('food', newData), database.deleteAll('food', removeData)])
+        })
+      }
+
+      function updateFavouriteDOM(data) {
+        let add = data[0]
+        let remove = data[1]
+        add.forEach((d) => {
+          let foodItem = document.createElement('food-item')
+          foodItem.init(d, 'BLOCK')
+          foodItem.setAttribute('data-status', 'COMMITTED')
+          document.body.appendChild(foodItem)
+        })
+
+        remove.forEach((n) => {
+          document.querySelectorAll('food-item[data-status="COMMITTED"]').forEach((e) => {
+            if (e.name.textContent === n) e.remove()
+          })
+        })
+      }
+
+      function syncWithAddress () {
+        return fetchFavouriteData()
+        .then((data) => {
+          if (data) return unionWithLocal(data)
+          if (!data) return Promise.resolve([])
+        })
+        .then((updated) => {
+          return updateFavouriteDOM(updated)
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+      }
 
     </script>
   </body>

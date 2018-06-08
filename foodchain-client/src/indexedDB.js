@@ -54,7 +54,7 @@ class IndexedDB {
             reject(e)
           }
           request.onsuccess = (e) => {
-            resolve(true)
+            resolve(v)
           }
         })
       })
@@ -152,7 +152,7 @@ class IndexedDB {
             reject(e)
           }
           update.onsuccess = (e) => {
-            resolve(true) 
+            resolve(v) 
           }
         })
       })
