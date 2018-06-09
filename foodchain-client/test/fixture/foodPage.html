@@ -9,6 +9,8 @@
     <script src="../../dist/external/protobuf.min.js" type="text/javascript"></script>
     <script src="../../dist/external/jss.min.js"></script>
     <script src="../../dist/external/jss-nested.min.js"></script>
+
+
     <style>
       body {
         background-color: whitesmoke;
@@ -68,7 +70,7 @@
   </head>
   <body>
     <script type="module">
-      // window.cbor = CBOR
+      window.serverAddress = ''
 
       import { sha256Hex } from '../../src/hashing.js'
       window.sha256Hex = sha256Hex
@@ -82,9 +84,6 @@
       import foodItem from '../../src/foodItem.js'
       customElements.define('food-item', foodItem)
 
-      import { IndexedDB } from '../../src/indexedDB.js'
-      window.database = new IndexedDB('foodChain')
-      
       import { generateNewKey, importKey, Sawtooth } from '../../src/sawtooth.js'
 
       let key
@@ -96,47 +95,109 @@
 
       window.sawtooth = new Sawtooth(key)
 
+      window.worker = new Worker('../../src/indexedDBWorker.js')
     </script>
 
     <script type='module'>
-      window.serverAddress = ''
+
+      function populateFoodPage (data) {
+        data.forEach((d) => {
+          let foodItem = document.createElement('food-item')
+          foodItem.init(d, 'DATABASE')
+
+          switch (d.status) {
+            case 'SIGNED':
+              foodItem.setAttribute('data-status', 'SIGNED')
+              document.body.insertBefore(foodItem, submitButton)
+
+              break
+            case 'SUBMITTED':
+              foodItem.setAttribute('data-status', 'SUBMITTED')
+              foodItem.confirmSubmission = confirmSubmission.bind(foodItem)
+              document.body.appendChild(foodItem)
+              
+              break
+
+            case 'COMMITTED':
+              foodItem.setAttribute('data-status', 'COMMITTED')
+              document.body.appendChild(foodItem)
+              committedFood.push(foodItem)
+
+              break
+          }
+        })
+
+        if (data.filter(d => d.status === 'SIGNED').length > 0) submitButton.hidden = false
+        
+      }
+
+      function clearEditor () {
+        foodEditor.nutrientTable.shadow.querySelectorAll('li:not(.constituentSelector)').forEach((n) => {
+          n.remove()
+        })
+        foodEditor.nameInput.value = ''
+        foodEditor.addressNameState
+        foodEditor.nutrientTable.selector.hidden = true
+      }
+
+      function appendNewFood (data) {
+        let foodItem = document.createElement('food-item')
+        foodItem.setAttribute('data-status', 'SIGNED')
+        foodItem.init(data, 'DATABASE')
+        document.body.insertBefore(foodItem, submitButton)
+        submitButton.hidden = false
+      }
+
+      function appendSignedFoodAsSubmitted(data) {
+        let signedItems = document.querySelectorAll('food-item[data-status="SIGNED"]')
+        signedItems.forEach((i) => {
+          i.setAttribute('data-status', 'SUBMITTED')
+          i.confirmSubmission = confirmSubmission.bind(i)
+          document.body.appendChild(i)
+        })
+
+        submitButton.hidden = true
+      }
+
+      function appendSubmittedFoodAsCommitted(data) {
+        document.querySelectorAll('food-item[data-status="SUBMITTED"]')
+        .forEach((n) => {
+          if (n.name.textContent === data[0].name) {
+            n.setAttribute('data-status', 'COMMITTED')
+            document.body.appendChild(n)
+          }
+        })
+      }
+
+      worker.onmessage = (e) => {
+        switch (e.data[0]) {
+          case 'AllFoodItems' :
+            populateFoodPage(e.data[1])
+            break
+
+          case 'NewFoodInserted':
+            clearEditor()
+            appendNewFood(e.data[1][0])
+            break
+
+          case 'FoodSubmitted':
+            appendSignedFoodAsSubmitted(e.data[1])
+            break
+
+          case 'FoodCommitted':
+            appendSubmittedFoodAsCommitted(e.data[1])
+            break
+
+          case 'FavouritesMerged':
+            updateFavouriteDOM(e.data[1])
+            break
+
+        }
+      }
+
+      worker.postMessage(['GetAllFoodItems'])
+
       window.committedFood = []
-
-      let request = database.indexedDB.open('foodChain')
-      request.onupgradeneeded = function (event) {
-        let db = event.target.result
-        let version = db.version
-        switch (version) {
-          case 1:
-            let foodStore = db.createObjectStore('food', {keyPath: 'name'})
-            foodStore.createIndex('name', 'name', {unique: true})
-            foodStore.createIndex('status', 'status', {unique: false})
-            foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
-
-            let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetime'})
-            consumptionStore.createIndex('datetime', 'datetime', {unique: true})
-            consumptionStore.createIndex('status', 'status', {unique: false})
-            consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
-        }
-      }
-
-      const timeNow = () => {
-        let datetime = new Date()
-        let options = {
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          weekday: 'long',
-          hour12: false,
-          timeZone: 'Asia/Shanghai'
-        }
-        return {
-          'string': new Intl.DateTimeFormat('zh-Hans-CN', options).format(datetime),
-          'value': datetime.valueOf()
-        }
-      }
 
       const confirmSubmission = function () {
         window.fetch(`${serverAddress}/batch_statuses`, {
@@ -152,12 +213,9 @@
         .then((json) => {
           if (json.status === 'COMMITTED') {
             this.data.status = 'COMMITTED'
-            return database.updateAll('food', [this.data])
+
+            worker.postMessage(['UpdateFoodItems', [this.data]])
           }
-        })
-        .then((updated) => {
-          this.setAttribute('data-status', 'COMMITTED')
-          document.body.appendChild(this)
         })
         .catch((error) => {
           console.log(error)
@@ -193,16 +251,7 @@
               submittedData.push(i.data)
             })
 
-            return database.updateAll('food', submittedData)
-          })
-          .then((updated) => {
-            signedItems.forEach((i) => {
-              i.setAttribute('data-status', 'SUBMITTED')
-              i.confirmSubmission = confirmSubmission.bind(i)
-              document.body.appendChild(i)
-            })
-
-            submitButton.hidden = true
+            worker.postMessage(['UpdateFoodItems', submittedData])
           })
           .catch((error) => {
             console.log(error)
@@ -219,31 +268,17 @@
         signButton.textContent = 'Sign'
         signButton.addEventListener('click', (event) => {
           if (signButton.classList.contains('active')) {
-            let data = foodEditor.compileData()
-
-            let foodItem = document.createElement('food-item')
-            foodItem.setAttribute('data-status', 'SIGNED')
-            foodItem.init(data, 'EDITOR')
-            foodItem.build()
-            .then((data) => {
-              return database.insertAll('food', [data])
-            })
-            .then(() => {
-              foodEditor.nutrientTable.shadow.querySelectorAll('li:not(.constituentSelector)').forEach((n) => {
-                n.remove()
-              })
-              foodEditor.nameInput.value = ''
-              foodEditor.addressNameState
-              foodEditor.nutrientTable.selector.hidden = true
-              signButton.hidden = true
-              document.body.insertBefore(foodItem, submitButton)
-              submitButton.hidden = false
+            foodEditor.compileData()
+            .then ((data) => {
+              worker.postMessage(['InsertNewFood', [data]])
             })
           }
         })
 
         return signButton
       }
+
+// initialization steps
 
       let searchInput = document.createElement('input')
       searchInput.classList.value = 'searchInput'
@@ -279,36 +314,7 @@
       let submitButton = SubmitButton()
       document.body.appendChild(submitButton)
 
-      database.getAll('food')
-      .then(data => {
-        data.forEach((d) => {
-          let foodItem = document.createElement('food-item')
-          foodItem.init(d, 'DATABASE')
-
-          switch (d.status) {
-            case 'SIGNED':
-              foodItem.setAttribute('data-status', 'SIGNED')
-              document.body.insertBefore(foodItem, submitButton)
-
-              break
-            case 'SUBMITTED':
-              foodItem.setAttribute('data-status', 'SUBMITTED')
-              foodItem.confirmSubmission = confirmSubmission.bind(foodItem)
-              document.body.appendChild(foodItem)
-              
-              break
-
-            case 'COMMITTED':
-              foodItem.setAttribute('data-status', 'COMMITTED')
-              document.body.appendChild(foodItem)
-              committedFood.push(foodItem)
-
-              break
-          }
-        })
-        if (data.filter(d => d.status === 'SIGNED').length > 0) submitButton.hidden = false
-        syncWithAddress()
-      })
+// initialization steps
 
       function fetchFavouriteData () {
         let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
@@ -326,30 +332,6 @@
           // let data = cbor.decode(b64ToBuffer(json.data))
           let data = json.data
           return Promise.resolve(data.favourites)
-        })
-      }
-
-      function unionWithLocal(favourites) {
-        return database.getAll('food')
-        .then((data) => {
-          let block = new Set(Object.keys(favourites))
-          let local = new Set(data.map((d) => d.name))
-
-          let add = new Set(block)
-          for (let n of local) {
-            add.delete(n)
-          }
-          let newData = []
-          add.forEach((n) => { newData.push(favourites[n]) })
-          newData.forEach((v,i,a) => { a[i].status = 'COMMITTED' })
-
-          let remove = new Set(local)
-          for (let n of block) {
-            remove.delete(n)
-          }
-          let removeData = Array.from(remove)
-
-          return Promise.all([database.insertAll('food', newData), database.deleteAll('food', removeData)])
         })
       }
 
@@ -373,16 +355,14 @@
       function syncWithAddress () {
         return fetchFavouriteData()
         .then((data) => {
-          if (data) return unionWithLocal(data)
-          if (!data) return Promise.resolve([])
-        })
-        .then((updated) => {
-          return updateFavouriteDOM(updated)
+          if (data) worker.postMessage(['MergeWithFavourites', data])
         })
         .catch((error) => {
           console.log(error)
         })
       }
+
+      syncWithAddress()
 
     </script>
   </body>

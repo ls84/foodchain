@@ -14,11 +14,18 @@ const injectSubmittedApple = ClientFunction(() => {
     },
     status: 'SUBMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
-    timeStamp: Date.now(),
-    batchID: '35e805cddc'
+    timeStamp: Date.now()
   }
 
-  database.insertAll('food', [data])
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['InsertNewFood', [data]])
+    worker.onmessage = (e) => {
+      if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+    }
+    worker.onerror = (e) => {
+      reject(e)
+    }
+  })
 })
 
 const injectCommittedApple = ClientFunction(() => {
@@ -27,19 +34,36 @@ const injectCommittedApple = ClientFunction(() => {
     food: {
       name: 'apple',
       Protein: 0.5,
-      Energy: 95,
+      Energy: 95
     },
     status: 'COMMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
-    timeStamp: Date.now(),
-    batchID: '35e805cddc'
+    timeStamp: Date.now()
   }
 
-  database.insertAll('food', [data])
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['InsertNewFood', [data]])
+    worker.onmessage = (e) => {
+      if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+    }
+    worker.onerror = (e) => {
+      reject(e)
+    }
+  })
 })
 
-const removeCommittedData = ClientFunction(() => {
-  database.deleteAll('food', ['apple'])
+const clearFoodStore = ClientFunction(() => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['ClearStore', 'food'])
+    worker.onmessage = (event) => {
+      if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
+      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
+      resolve()
+    }
+    worker.onerror = (error) => {
+      reject(error)
+    }
+  })
 })
 
 const goodConfirmation = RequestMock()
@@ -60,9 +84,8 @@ test
   await t.expect(committedFoodItem.exists).ok('confirmed food should become commited')
 })
 .after(async t => {
-  await removeCommittedData()
+  await clearFoodStore()
 })
-
 
 test
 .before(async t => {
@@ -82,5 +105,5 @@ test
   .expect(getEnergy()).eql('95', 'should have correct "Energy" value')
 })
 .after(async t => {
-  await removeCommittedData()
+  await clearFoodStore()
 })

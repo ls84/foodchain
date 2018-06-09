@@ -53,17 +53,6 @@ const styles = {
 
 const styleSheet = JSS.createStyleSheet(styles)
 
-// function SignButton () {
-//   let signButton = document.createElement('div')
-//   signButton.classList.add('signButton')
-//   signButton.textContent = 'Sign'
-//   signButton.addEventListener('click', (event) => {
-//     if (signButton.classList.contains('active') && this.sign !== undefined) this.sign()
-//   })
-// 
-//   return signButton
-// }
-
 const resolveNameAddress = function (name) {
   return sha256Hex(name)
   .then((hash) => {
@@ -154,13 +143,35 @@ export default class foodEditor extends HTMLElement {
   }
 
   compileData () {
+    let name = this.nameInput.value
     let data = {
-      name: this.nameInput.value
+      name,
+      food: { name }
     }
     this.nutrientTable.shadow.querySelectorAll('.constituent').forEach((v) => {
       let value = v.querySelector('input').value
-      if (value) data[v.id] = value
+      if (value) data.food[v.id] = value
     })
-    return data
+
+    return sha256Hex(name)
+    .then((hex) => {
+      let address = '100000' + hex
+      let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
+      header.inputs = [address]
+      header.outputs = [address] 
+
+      let payload = { action: 'create', food: data.food }
+      return sawtooth.buildTransaction(header, payload)
+    })
+    .then((transaction) => {
+      data.timeStamp = Date.now()
+      data.status = 'SIGNED'
+      data.transaction = transaction
+
+      return Promise.resolve(data)
+    })
+    .catch((error) => {
+      console.log(error)
+    })
   }
 }

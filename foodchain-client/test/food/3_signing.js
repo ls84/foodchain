@@ -45,6 +45,29 @@ const signBanana = async (t) => {
   await t.click(signButton)
 }
 
+const getFoodData = ClientFunction(() => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['GetAllFoodItems'])
+    worker.onmessage = function (event) {
+      resolve(event.data[1])
+    }
+  })
+})
+
+const clearFoodStore = ClientFunction(() => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['ClearStore', 'food'])
+    worker.onmessage = (event) => {
+      if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
+      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
+      resolve()
+    }
+    worker.onerror = (error) => {
+      reject(error)
+    }
+  })
+})
+
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
@@ -61,8 +84,7 @@ test
   await signApple(t)
 })
 ('Sign a "NON-EXISTS" food', async t => {
-  let databaseState = ClientFunction(() => database.matchOnly('food', 'name', 'apple'))
-  let foodData = await databaseState()
+  let foodData = await getFoodData()
   await t.expect(foodData[0].name).eql('apple', '"name" data should be "apple"')
   .expect(foodData[0].food.Protein).eql('0.5', 'data "Energy" data should be 0.5')
   .expect(foodData[0].food.Energy).eql('95', 'data "Energy" data should be 95')
@@ -72,8 +94,7 @@ test
   .expect(foodItemTable.find('.container').hasAttribute('hidden')).ok('nutrientTable should be hidden first')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
-  await removeSignedData()
+  await clearFoodStore()
 })
 
 test
@@ -90,8 +111,7 @@ test
   .expect(secondItem.find('div').withText('banana').exists).ok('should have "banana" item')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple', 'banana']))
-  await removeSignedData()
+  await clearFoodStore()
 })
 
 test
@@ -108,8 +128,7 @@ test
   .expect(getEnergy()).eql('95', 'should have correct "Energy" value')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
-  await removeSignedData()
+  await clearFoodStore()
 })
 
 test
@@ -122,6 +141,5 @@ test
   await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
-  await removeSignedData()
+  await clearFoodStore()
 })

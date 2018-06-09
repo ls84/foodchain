@@ -12,15 +12,22 @@ const injectCommittedApple = ClientFunction(() => {
     food: {
       name: 'apple',
       Protein: 0.5,
-      Energy: 95,
+      Energy: 95
     },
     status: 'COMMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
-    timeStamp: Date.now(),
-    batchID: '35e805cddc'
+    timeStamp: Date.now()
   }
 
-  database.insertAll('food', [data])
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['InsertNewFood', [data]])
+    worker.onmessage = (e) => {
+      if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+    }
+    worker.onerror = (e) => {
+      reject(e)
+    }
+  })
 })
 
 const injectCommittedBanana = ClientFunction(() => {
@@ -29,15 +36,36 @@ const injectCommittedBanana = ClientFunction(() => {
     food: {
       name: 'banana',
       Protein: 1.3,
-      Energy: 105,
+      Energy: 105
     },
     status: 'COMMITTED',
     transaction: {headerSignature: '26e6a9f751a3'},
-    timeStamp: Date.now(),
-    batchID: '35e805cddc'
+    timeStamp: Date.now()
   }
 
-  database.insertAll('food', [data])
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['InsertNewFood', [data]])
+    worker.onmessage = (e) => {
+      if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+    }
+    worker.onerror = (e) => {
+      reject(e)
+    }
+  })
+})
+
+const clearFoodStore = ClientFunction(() => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['ClearStore', 'food'])
+    worker.onmessage = (event) => {
+      if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
+      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
+      resolve()
+    }
+    worker.onerror = (error) => {
+      reject(error)
+    }
+  })
 })
 
 const myEmptyAddressState = RequestMock()
@@ -81,10 +109,8 @@ test
   await t.expect(committedBanana.hasAttribute('hidden')).ok('should have a hidden banana')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple','banana']))
-  await removeSignedData()
+  await clearFoodStore()
 })
-
 
 test
 .before(async t => {
@@ -92,8 +118,8 @@ test
   await injectCommittedApple()
   await injectCommittedBanana()
   await t.removeRequestHooks(myEmptyAddressState)
-  await t.eval(() => { window.location.reload() })
   await t.addRequestHooks(myAddressState)
+  await t.eval(() => { window.location.reload() })
 })
 ('sync with block', async t => {
   let committedFood = Selector('food-item[data-status="COMMITTED"]')
@@ -104,6 +130,5 @@ test
   await t.expect(committedBanana.exists).notOk('should not have a banana')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple','banana', 'orange']))
-  await removeSignedData()
+  await clearFoodStore()
 })

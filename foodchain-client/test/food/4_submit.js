@@ -4,7 +4,8 @@ fixture
 ('Submit Signed Food')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
-const submitButton = Selector(() => document.querySelector('.submitButton'))
+const submitButton = Selector('.submitButton')
+const submittedFoodItem = Selector('food-item[data-status="SUBMITTED"]')
 
 const injectApple = ClientFunction(() => {
   let data = {
@@ -19,7 +20,15 @@ const injectApple = ClientFunction(() => {
     timeStamp: Date.now()
   }
 
-  database.insertAll('food', [data])
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['InsertNewFood', [data]])
+    worker.onmessage = (e) => {
+      if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+    }
+    worker.onerror = (e) => {
+      reject(e)
+    }
+  })
 })
 
 const injectBanana = ClientFunction(() => {
@@ -35,7 +44,38 @@ const injectBanana = ClientFunction(() => {
     timeStamp: Date.now()
   }
 
-  database.insertAll('food', [data])
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['InsertNewFood', [data]])
+    worker.onmessage = (e) => {
+      if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+    }
+    worker.onerror = (e) => {
+      reject(e)
+    }
+  })
+})
+
+const getFoodData = ClientFunction(() => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['GetAllFoodItems'])
+    worker.onmessage = function (event) {
+      resolve(event.data[1])
+    }
+  })
+})
+
+const clearFoodStore = ClientFunction(() => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage(['ClearStore', 'food'])
+    worker.onmessage = (event) => {
+      if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
+      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
+      resolve()
+    }
+    worker.onerror = (error) => {
+      reject(error)
+    }
+  })
 })
 
 const goodSubmission = RequestMock()
@@ -52,8 +92,7 @@ test
   await t.expect(submitButton.hasAttribute('hidden')).notOk('should reveal submit button')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
-  await removeSignedData()
+  await clearFoodStore()
 })
 
 test
@@ -64,17 +103,13 @@ test
   await t.click(submitButton)
 })
 ('successful submition', async t => {
-  const submittedFoodItem = Selector(() => document.querySelector('food-item[data-status="SUBMITTED"]'))
-  let getSubmittedData = ClientFunction(() => database.matchOnly('food', 'name', 'apple'))
-
+  let foodData = await getFoodData()
   await t.expect(submittedFoodItem.exists).ok('food-item should have became SUBMITTED')
-  let submittedData = await getSubmittedData()
-  await t.expect(submittedData[0].status).eql('SUBMITTED', 'should update status to SUBMITTED')
-  await t.expect(submittedData[0].batchID).eql('35e805cddc', 'should update data with batchID')
+  await t.expect(foodData[0].status).eql('SUBMITTED', 'should update status to SUBMITTED')
+  await t.expect(foodData[0].batchID).eql('35e805cddc', 'should update data with batchID')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple']))
-  await removeSignedData()
+  await clearFoodStore()
 })
 
 test
@@ -87,11 +122,9 @@ test
 
 })
 ('submit multiple signed food', async t => {
-  const submittedFoodItem = Selector(() => document.querySelector('food-item[data-status="SUBMITTED"]'))
   await t.expect(submittedFoodItem.exists).ok('should have one food-item')
   .expect(submittedFoodItem.nextSibling().exists).ok('should have two food-item')
 })
 .after(async t => {
-  let removeSignedData = ClientFunction(() => database.deleteAll('food', ['apple', 'banana']))
-  await removeSignedData()
+  await clearFoodStore()
 })
