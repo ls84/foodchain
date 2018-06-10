@@ -22,5 +22,29 @@ onmessage = function (e) {
       .catch((error) => {
         postMessage('BatchesSubmissionError')
       })
+
+    case 'FetchMyAddressState':
+      fetch(`${serverAddress}/state/${e.data[1]}`, {
+        headers: {'Content-Type': 'application/json'},
+        method: 'GET',
+        mode: 'cors'
+      })
+      .then((response) => {
+        if (!response.ok) return Promise.reject(new Error('response is not okay'))
+        return response.json()
+      })
+      .then((json) => {
+        // TODO:
+        // let data = cbor.decode(b64ToBuffer(json.data))
+        let data = json.data
+        postMessage(['MyAddressStateFetched', data])
+      })
+      .catch((error) => {
+        postMessage(['AddressFetchError']) 
+      })
+      break
+
+    case 'FetchAddressState':
+      break
   }
 }

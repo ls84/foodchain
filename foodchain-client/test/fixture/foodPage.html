@@ -208,6 +208,10 @@
               return d
             })
             worker.postMessage(['UpdateFoodItems', submittedData])
+
+          case 'MyAddressStateFetched':
+            let favourites = e.data[1].favourites
+            if (favourites) worker.postMessage(['MergeWithFavourites', favourites])
         }
       }
 
@@ -315,25 +319,6 @@
 
 // initialization steps
 
-      function fetchFavouriteData () {
-        let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
-        return window.fetch(`${serverAddress}/state/${myAddress}`, {
-          headers: {'Content-Type': 'application/json'},
-          method: 'GET',
-          mode: 'cors'
-        })
-        .then((response) => {
-          if (!response.ok) return Promise.reject(new Error('response is not okay'))
-          return response.json()
-        })
-        .then((json) => {
-          // TODO:
-          // let data = cbor.decode(b64ToBuffer(json.data))
-          let data = json.data
-          return Promise.resolve(data.favourites)
-        })
-      }
-
       function updateFavouriteDOM(data) {
         let add = data[0]
         let remove = data[1]
@@ -352,13 +337,8 @@
       }
 
       function syncWithAddress () {
-        return fetchFavouriteData()
-        .then((data) => {
-          if (data) worker.postMessage(['MergeWithFavourites', data])
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+        let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
+        NETWorker.postMessage(['FetchMyAddressState', myAddress])
       }
 
       syncWithAddress()
