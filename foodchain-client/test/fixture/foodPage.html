@@ -96,6 +96,8 @@
       window.sawtooth = new Sawtooth(key)
 
       window.worker = new Worker('../../src/indexedDBWorker.js')
+      window.NETWorker = new Worker('../../src/NETWorker.js')
+
     </script>
 
     <script type='module'>
@@ -194,7 +196,18 @@
           case 'FavouritesMerged':
             updateFavouriteDOM(e.data[1])
             break
+        }
+      }
 
+      NETWorker.onmessage = (e) => {
+        switch (e.data[0]) {
+          case 'BatchesSubmitted':
+            let submittedData = signedFoodData.map((d) => {
+              d.status = 'SUBMITTED'
+              d.batchID = e.data[1]
+              return d
+            })
+            worker.postMessage(['UpdateFoodItems', submittedData])
         }
       }
 
@@ -236,19 +249,8 @@
           let transactions = signedFoodData.map((d) => d.transaction )
           return sawtooth.buildBatch(transactions)
           .then((batch) => {
-            return sawtooth.send([batch], `${serverAddress}/batches`)
-          })
-          .then((response) => {
-            let params = (new URL(response.link)).searchParams
-            let batchID = params.get('id')
-
-            let submittedData = signedFoodData.map((d) => {
-              d.status = 'SUBMITTED'
-              d.batchID = batchID
-              return d
-            })
-
-            worker.postMessage(['UpdateFoodItems', submittedData])
+            let batchListBytes = sawtooth.encodeBatchList([batch])
+            NETWorker.postMessage(['SubmitBatches', batchListBytes])
           })
           .catch((error) => {
             console.log(error)

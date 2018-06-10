@@ -91,21 +91,8 @@ class Sawtooth {
     })
   }
 
-  send (batches, url) {
-    let batchListBytes = this.proto.BatchList.encode({batches}).finish()
-    return window.fetch(url, {
-      body: batchListBytes,
-      headers: {'Content-Type': 'application/octet-stream'},
-      method: 'POST',
-      mode: 'cors'
-    })
-    .then((response) => {
-      if (!response.ok) return Promise.reject(new Error('response is not ok'))
-      return response.json()
-    })
-    .catch((error) => {
-      return Promise.reject(error)
-    })
+  encodeBatchList (batches) {
+    return this.proto.BatchList.encode({batches}).finish()  
   }
 }
 
