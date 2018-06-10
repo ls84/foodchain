@@ -109,6 +109,7 @@
             case 'SIGNED':
               foodItem.setAttribute('data-status', 'SIGNED')
               document.body.insertBefore(foodItem, submitButton)
+              signedFoodData.push(d)
 
               break
             case 'SUBMITTED':
@@ -178,10 +179,12 @@
           case 'NewFoodInserted':
             clearEditor()
             appendNewFood(e.data[1][0])
+            signedFoodData.push(e.data[1][0])
             break
 
           case 'FoodSubmitted':
             appendSignedFoodAsSubmitted(e.data[1])
+            signedFoodData = []
             break
 
           case 'FoodCommitted':
@@ -198,6 +201,7 @@
       worker.postMessage(['GetAllFoodItems'])
 
       window.committedFood = []
+      window.signedFoodData = []
 
       const confirmSubmission = function () {
         window.fetch(`${serverAddress}/batch_statuses`, {
@@ -229,12 +233,7 @@
         submitButton.textContent = 'Submit'
 
         submitButton.addEventListener('click', (event) => {
-          let signedItems = document.querySelectorAll('food-item[data-status = "SIGNED"]')
-          let transactions = []
-          signedItems.forEach((i) => {
-            transactions.push(i.data.transaction)
-          })
-          
+          let transactions = signedFoodData.map((d) => d.transaction )
           return sawtooth.buildBatch(transactions)
           .then((batch) => {
             return sawtooth.send([batch], `${serverAddress}/batches`)
@@ -243,12 +242,10 @@
             let params = (new URL(response.link)).searchParams
             let batchID = params.get('id')
 
-            let submittedData = []
-            signedItems.forEach((i) => {
-              i.data.status = 'SUBMITTED'
-              i.data.batchID = batchID
-
-              submittedData.push(i.data)
+            let submittedData = signedFoodData.map((d) => {
+              d.status = 'SUBMITTED'
+              d.batchID = batchID
+              return d
             })
 
             worker.postMessage(['UpdateFoodItems', submittedData])

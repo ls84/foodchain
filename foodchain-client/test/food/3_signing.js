@@ -135,6 +135,7 @@ test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
   await signApple(t)
+  await t.wait(100)
   await t.eval(() => { window.location.reload() })
 })
 ('Display signed data', async t => {
