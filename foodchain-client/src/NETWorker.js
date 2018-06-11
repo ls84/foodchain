@@ -46,5 +46,24 @@ onmessage = function (e) {
 
     case 'FetchAddressState':
       break
+
+    case 'ConfirmSubmission':
+      fetch(`${serverAddress}/batch_status`, {
+        body: JSON.stringify(e.data[1]),
+        headers: {'Content-Type': 'application/json'},
+        method: 'POST',
+        mode: 'cors'
+      })
+      .then((response) => {
+        if (!response.ok) return Promise.reject(new Error('response is not okay'))
+        return response.json()
+      })
+      .then((json) => {
+        if (json.status === 'COMMITTED') postMessage(['SubmissionConfirmed', e.data[1]])
+        if (json.status === 'PENDING') postMessage(['SubmissionPending', e.data[1]])
+      })
+      .catch((error) => {
+        postMessage(['SubmissionConfirmError'])
+      })
   }
 }

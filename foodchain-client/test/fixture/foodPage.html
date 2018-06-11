@@ -118,6 +118,7 @@
               foodItem.setAttribute('data-status', 'SUBMITTED')
               foodItem.confirmSubmission = confirmSubmission.bind(foodItem)
               document.body.appendChild(foodItem)
+              submittedFoodData.push(d)
               
               break
 
@@ -191,6 +192,7 @@
 
           case 'FoodCommitted':
             appendSubmittedFoodAsCommitted(e.data[1])
+            submittedFoodData = submittedFoodData.filter((d) => d.batchID !== e.data[1][0].batchID)
             break
 
           case 'FavouritesMerged':
@@ -202,16 +204,31 @@
       NETWorker.onmessage = (e) => {
         switch (e.data[0]) {
           case 'BatchesSubmitted':
-            let submittedData = signedFoodData.map((d) => {
+            let signedItemsUpdate = signedFoodData.map((d) => {
               d.status = 'SUBMITTED'
               d.batchID = e.data[1]
               return d
             })
-            worker.postMessage(['UpdateFoodItems', submittedData])
+            submittedFoodData = submittedFoodData.concat(signedItemsUpdate)
+            worker.postMessage(['UpdateFoodItems', signedItemsUpdate])
+            break
 
           case 'MyAddressStateFetched':
             let favourites = e.data[1].favourites
             if (favourites) worker.postMessage(['MergeWithFavourites', favourites])
+            break
+
+          case 'SubmissionConfirmed':
+            let submittedItemsUpdate = submittedFoodData.filter((d) => {
+              return d.batchID === e.data[1] 
+            })
+            .map((d) => {
+              d.status = 'COMMITTED'
+              return d
+            })
+
+            worker.postMessage(['UpdateFoodItems', submittedItemsUpdate])
+            break
         }
       }
 
@@ -219,28 +236,10 @@
 
       window.committedFood = []
       window.signedFoodData = []
+      window.submittedFoodData = []
 
       const confirmSubmission = function () {
-        window.fetch(`${serverAddress}/batch_statuses`, {
-          body: JSON.stringify(this.data.batchID),
-          headers: {'Content-Type': 'application/json'},
-          method: 'POST',
-          mode: 'cors'
-        })
-        .then((response) => {
-          if (!response.ok) return Promise.reject(new Error('response is not okay'))
-          return response.json()
-        })
-        .then((json) => {
-          if (json.status === 'COMMITTED') {
-            this.data.status = 'COMMITTED'
-
-            worker.postMessage(['UpdateFoodItems', [this.data]])
-          }
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+        NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
       }
 
       const SubmitButton = () => {

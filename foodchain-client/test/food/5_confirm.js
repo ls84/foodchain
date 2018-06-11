@@ -14,7 +14,9 @@ const injectSubmittedApple = ClientFunction(() => {
     },
     status: 'SUBMITTED',
     transaction: {headerSignature: '16e6a9f751a3'},
+    batchID: '35e805cddc',
     timeStamp: Date.now()
+    
   }
 
   return new Promise((resolve, reject) => {

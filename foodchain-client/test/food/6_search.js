@@ -97,6 +97,7 @@ test
 .before(async t => {
   await injectCommittedApple()
   await injectCommittedBanana()
+  await t.wait(5000)
   await t.eval(() => { window.location.reload() })
   await t.typeText(searchInput, 'apple')
 })

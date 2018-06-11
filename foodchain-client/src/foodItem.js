@@ -95,6 +95,7 @@ export default class foodItem extends HTMLElement {
         this.data.name = data.food.name
         this.data.food = data.food
         this.data.transaction = data.transaction
+        this.data.batchID = data.batchID
         break
       case 'BLOCK':
         this.data.name = data.name
