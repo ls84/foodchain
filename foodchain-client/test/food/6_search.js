@@ -20,11 +20,13 @@ const injectCommittedApple = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/indexedDBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
     }
     worker.onerror = (e) => {
+      worker.terminate()
       reject(e)
     }
   })
@@ -44,11 +46,13 @@ const injectCommittedBanana = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/indexedDBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
     }
     worker.onerror = (e) => {
+      worker.terminate()
       reject(e)
     }
   })
@@ -97,8 +101,9 @@ test
 .before(async t => {
   await injectCommittedApple()
   await injectCommittedBanana()
-  await t.wait(5000)
+  await t.wait(1000)
   await t.eval(() => { window.location.reload() })
+  await t.wait(1000)
   await t.typeText(searchInput, 'apple')
 })
 ('search "apple"', async t => {

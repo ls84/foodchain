@@ -23,7 +23,7 @@ class IndexedDB {
     .then((db) => {
       let transaction = db.transaction([storeName], 'readwrite')
       let objectStore = transaction.objectStore(storeName)
-      let promises = data.map((v) => {
+      let requests = data.map((v) => {
         return new Promise((resolve, reject) => {
           let request = objectStore.add(v)
           request.onerror = (e) => {
@@ -35,7 +35,20 @@ class IndexedDB {
         })
       })
 
-      return Promise.all(promises)
+      return Promise.all(requests)
+      .then((insertedData) => {
+        return new Promise((resolve, reject) => {
+          transaction.onerror = (e) => {
+            reject(e)
+          }
+          transaction.oncomplete = (e) => {
+            resolve(insertedData)
+          }
+        })
+      })
+      .catch((error) => {
+        throw new Error(error)
+      })
     })
   }
 
@@ -123,6 +136,19 @@ class IndexedDB {
           resolve(e.target.result) 
         }
       })
+      .then((result) => {
+        return new Promise((resolve, reject) => {
+          transaction.onerror = (e) => {
+            reject(e)
+          }
+          transaction.oncomplete = (e) => {
+            resolve(result)
+          }
+        })
+      })
+      .catch((error) => {
+        throw new Error(error)
+      })
     })
     .catch((error) => {
       return Promise.reject(error)
@@ -179,6 +205,7 @@ onmessage = function (e) {
       database.insertAll('food', e.data[1])
       .then((data) => {
         postMessage(['NewFoodInserted', data])
+        close()
       })
       break
 

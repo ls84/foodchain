@@ -84,14 +84,15 @@ test
   await signApple(t)
 })
 ('Sign a "NON-EXISTS" food', async t => {
+  await t.expect(foodItem.exists).ok('should create a food-item')
+  .expect(foodItem.find('div').withText('apple').exists).ok('should has name "apple"')
+  .expect(foodItemTable.find('.container').hasAttribute('hidden')).ok('nutrientTable should be hidden first')
+
   let foodData = await getFoodData()
   await t.expect(foodData[0].name).eql('apple', '"name" data should be "apple"')
   .expect(foodData[0].food.Protein).eql('0.5', 'data "Energy" data should be 0.5')
   .expect(foodData[0].food.Energy).eql('95', 'data "Energy" data should be 95')
   .expect(foodData[0].status).eql('SIGNED', 'data "status" data should be "SIGNED"')
-  .expect(foodItem.exists).ok('should create a food-item')
-  .expect(foodItem.find('div').withText('apple').exists).ok('should has name "apple"')
-  .expect(foodItemTable.find('.container').hasAttribute('hidden')).ok('nutrientTable should be hidden first')
 })
 .after(async t => {
   await clearFoodStore()
@@ -135,8 +136,9 @@ test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
   await signApple(t)
-  await t.wait(5000)
+  await t.wait(1000)
   await t.eval(() => { window.location.reload() })
+  await t.wait(1000)
 })
 ('Display signed data', async t => {
   await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')

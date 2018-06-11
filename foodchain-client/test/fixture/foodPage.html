@@ -132,7 +132,6 @@
         })
 
         if (data.filter(d => d.status === 'SIGNED').length > 0) submitButton.hidden = false
-        
       }
 
       function clearEditor () {
@@ -177,12 +176,6 @@
         switch (e.data[0]) {
           case 'AllFoodItems' :
             populateFoodPage(e.data[1])
-            break
-
-          case 'NewFoodInserted':
-            clearEditor()
-            appendNewFood(e.data[1][0])
-            signedFoodData.push(e.data[1][0])
             break
 
           case 'FoodSubmitted':
@@ -238,6 +231,12 @@
       window.signedFoodData = []
       window.submittedFoodData = []
 
+      document.body.addEventListener('FoodSigned', (e) => {
+        clearEditor()
+        appendNewFood(e.detail)
+        signedFoodData.push(e.detail)
+      }, true)
+
       const confirmSubmission = function () {
         NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
       }
@@ -263,19 +262,27 @@
         return submitButton
       }
 
+      const FoodSigning = async function() {
+        let data = await foodEditor.compileData() 
+        let worker = new Worker('../../src/indexedDBWorker.js')
+        worker.postMessage(['InsertNewFood', [data]])
+
+        worker.onmessage = (e) => {
+          let foodSigned = new CustomEvent('FoodSigned', {detail: e.data[1][0]})
+          this.dispatchEvent(foodSigned)
+        }
+
+        worker.onerror = (e) => {
+          worker.terminate()
+        }
+      }
+
       const SignButton = () => {
         let signButton = document.createElement('div')
         signButton.classList.add('signButton')
         signButton.hidden = true
         signButton.textContent = 'Sign'
-        signButton.addEventListener('click', (event) => {
-          if (signButton.classList.contains('active')) {
-            foodEditor.compileData()
-            .then ((data) => {
-              worker.postMessage(['InsertNewFood', [data]])
-            })
-          }
-        })
+        signButton.addEventListener('click', FoodSigning.bind(signButton))
 
         return signButton
       }

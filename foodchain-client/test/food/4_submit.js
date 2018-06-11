@@ -21,11 +21,13 @@ const injectApple = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/indexedDBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
     }
     worker.onerror = (e) => {
+      worker.terminate()
       reject(e)
     }
   })
@@ -45,11 +47,13 @@ const injectBanana = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/indexedDBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
     }
     worker.onerror = (e) => {
+      worker.terminate()
       reject(e)
     }
   })
@@ -119,7 +123,6 @@ test
   await injectBanana()
   await t.eval(() => { window.location.reload() })
   await t.click(submitButton)
-
 })
 ('submit multiple signed food', async t => {
   await t.expect(submittedFoodItem.exists).ok('should have one food-item')
