@@ -19,10 +19,10 @@ const blurInput = ClientFunction(() => {
 
 const nonExistsAddressStateRequest = RequestMock()
 .onRequestTo(new RegExp('/state'))
-.respond({data: []}, 200)
+.respond(null, 404)
 
 const signApple = async (t) => {
-  await t.typeText(nameInput, 'apple')
+  await t.typeText(nameInput, 'apple', { speed: 0.1 })
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .typeText(nutrientTable.find('.constituent#Protein input'), '0.5')
@@ -34,7 +34,7 @@ const signApple = async (t) => {
 }
 
 const signBanana = async (t) => {
-  await t.typeText(nameInput, 'banana')
+  await t.typeText(nameInput, 'banana', { speed: 0.1 })
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .typeText(nutrientTable.find('.constituent#Protein input'), '1.3')
@@ -71,8 +71,7 @@ const clearFoodStore = ClientFunction(() => {
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(nameInput, 'apple')
-  await blurInput()
+  await t.typeText(nameInput, 'apple', { speed: 0.1 })
 })
 ('NON-EXISTS Name Address', async t => {
  await t.expect(signButton.hasClass('active')).ok('sign button should be activated')
@@ -136,12 +135,12 @@ test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
   await signApple(t)
-  await t.wait(1000)
+  await t.wait(500)
   await t.eval(() => { window.location.reload() })
-  await t.wait(1000)
 })
 ('Display signed data', async t => {
-  await t.expect(foodItem.find('div').withText('apple').exists).ok('should have a food Item displayed')
+  let apple = Selector('food-item', {timeout: 5000}).filter((n, i) => n.name.textContent === 'apple')
+  await t.expect(apple.exists).ok('should have a food Item displayed')
 })
 .after(async t => {
   await clearFoodStore()

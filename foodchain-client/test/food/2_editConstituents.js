@@ -1,6 +1,7 @@
 import { Selector } from 'testcafe'
 
-fixture('Editing Constituents')
+fixture
+('Editing Constituents')
 .page(`http://localhost:8002/test/fixture/foodPage.html`)
 
 const foodEditor = Selector(() => foodEditor.shadow)
@@ -8,8 +9,9 @@ const nutrientTable = Selector(() => foodEditor.nutrientTable.shadow)
 const nameInput = foodEditor.find('.nameInput')
 const selector = nutrientTable.find('.constituentSelector select')
 
-test.before(async t => {
-  await t.typeText(nameInput, 'apple')
+test
+.before(async t => {
+  await t.typeText(nameInput, 'apple', { speed: 0.1})
   .click(selector)
   .click(selector.find('option').withText('Protein'))
 })
@@ -19,7 +21,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple')
+  await t.typeText(nameInput, 'apple', { speed: 0.1})
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .click(selector)
@@ -30,7 +32,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple')
+  await t.typeText(nameInput, 'apple', { speed: 0.1})
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .click(selector)
@@ -41,7 +43,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple')
+  await t.typeText(nameInput, 'apple', { speed: 0.1})
   .click(selector)
   .click(selector.find('option').withText('Energy'))
   .click(selector)
@@ -52,7 +54,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple')
+  await t.typeText(nameInput, 'apple', { speed: 0.1})
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .click(selector)

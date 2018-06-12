@@ -97,6 +97,7 @@
 
       window.worker = new Worker('../../src/indexedDBWorker.js')
       window.NETWorker = new Worker('../../src/NETWorker.js')
+      window.NameResolver = new Worker('../../src/NameResolver.js')
 
     </script>
 
@@ -174,7 +175,7 @@
 
       worker.onmessage = (e) => {
         switch (e.data[0]) {
-          case 'AllFoodItems' :
+          case 'AllFoodItems':
             populateFoodPage(e.data[1])
             break
 
@@ -263,17 +264,19 @@
       }
 
       const FoodSigning = async function() {
-        let data = await foodEditor.compileData() 
-        let worker = new Worker('../../src/indexedDBWorker.js')
-        worker.postMessage(['InsertNewFood', [data]])
+        if (this.classList.contains('active')) {
+          let data = await foodEditor.compileData() 
+          let worker = new Worker('../../src/indexedDBWorker.js')
+          worker.postMessage(['InsertNewFood', [data]])
 
-        worker.onmessage = (e) => {
-          let foodSigned = new CustomEvent('FoodSigned', {detail: e.data[1][0]})
-          this.dispatchEvent(foodSigned)
-        }
+          worker.onmessage = (e) => {
+            let foodSigned = new CustomEvent('FoodSigned', {detail: e.data[1][0]})
+            this.dispatchEvent(foodSigned)
+          }
 
-        worker.onerror = (e) => {
-          worker.terminate()
+          worker.onerror = (e) => {
+            worker.terminate()
+          }
         }
       }
 
@@ -306,18 +309,35 @@
       document.body.append(searchInput)
 
       window.foodEditor = document.createElement('food-editor')
-      foodEditor.NameAddressStateChange = (state) => {
-        if (state === 'NON-EXISTS') signButton.classList.add('active')
-      }
-      foodEditor.inputStateChange = (state) => {
-        if (state === 'NON-EMPTY') signButton.hidden = false
-        if (state === 'EMPTY') signButton.hidden = true
-        signButton.classList.remove('active')
-      }
-
       document.body.appendChild(foodEditor)
+      document.addEventListener('NameChanged', (e) => {
+        signButton.hidden = (e.detail.isEmpty) ? true : false
+        signButton.classList.remove('active')
+        foodEditor.addressState.textContent = ''
 
-      let signButton = SignButton()
+        let name = e.detail.name
+
+        let AddressStateHandler = function (e) {
+          if (e.data[1] === name) NameResolver.removeEventListener(e.type, AddressStateHandler)
+
+          switch (e.data[0]) {
+            case 'AddressStateFetched':
+              if (e.data[2] === null) {
+                foodEditor.addressState.textContent = 'new food'
+                signButton.classList.add('active')
+              }
+              break
+
+          }
+        }
+
+        if (!e.detail.isEmpty) {
+          NameResolver.addEventListener('message', AddressStateHandler)
+          NameResolver.postMessage([e.detail.name, true])
+        }
+      }, true)
+
+      window.signButton = SignButton()
       document.body.appendChild(signButton)
 
       let submitButton = SubmitButton()

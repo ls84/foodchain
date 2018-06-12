@@ -101,9 +101,13 @@ test
 .before(async t => {
   await injectCommittedApple()
   await injectCommittedBanana()
-  await t.wait(1000)
+  await t.wait(500)
   await t.eval(() => { window.location.reload() })
-  await t.wait(1000)
+  let committedFood = Selector('food-item[data-status="COMMITTED"]')
+  let committedApple = committedFood.filter(n => n.name.textContent === 'apple')
+  let committedBanana = committedFood.filter(n => n.name.textContent === 'banana')
+  await t.expect(committedApple.exists).ok('should have an apple')
+  await t.expect(committedBanana.exists).ok('should have an Banana')
   await t.typeText(searchInput, 'apple')
 })
 ('search "apple"', async t => {

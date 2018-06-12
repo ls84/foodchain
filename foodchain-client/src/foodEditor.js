@@ -25,7 +25,7 @@ const styles = {
     'border': 'none',
     'border-bottom': 'dotted lightgrey'
   },
-  'nameAddressState': {
+  'addressState': {
     'font-family': 'sans-serif',
     'font-size': '14px',
     'font-weight': '100',
@@ -53,27 +53,6 @@ const styles = {
 
 const styleSheet = JSS.createStyleSheet(styles)
 
-const resolveNameAddress = function (name) {
-  return sha256Hex(name)
-  .then((hash) => {
-    return window.fetch(`${serverAddress}/state?address=${'100000' + hash}`, {
-      headers: {'Content-Type': 'application/json'},
-      method: 'GET',
-      mode: 'cors'
-    })
-  })
-  .then((response) => {
-    if (!response.ok) return Promise.reject(new Error('response is not okay'))
-    return response.json()
-  })
-  .then((json) => {
-    if (json.data.length === 0) return Promise.resolve('NON-EXISTS') 
-  })
-  .catch((error) => {
-    return Promise.reject(error) 
-  })
-} 
-
 function updateAddressState (name) {
   switch (name) {
     case 'NON-EXISTS':
@@ -89,30 +68,11 @@ const NameInput = function () {
   nameInput.classList.add(styleSheet.classes.nameInput)
 
   nameInput.addEventListener('keyup', (event) => {
-    let selector = this.nutrientTable.selector
     let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
-    let constituentExists = this.nutrientTable.shadow.querySelector('.constituent')
 
-    if (name !== '' && selector.hidden) {
-      selector.hidden = false
-      this.inputStateChange('NON-EMPTY')
-    }
-
-    if (name === '' && !selector.hidden && !constituentExists) {
-      selector.hidden = true
-      this.inputStateChange('EMPTY')
-    }
-  })
-
-  nameInput.addEventListener('change', (event) => {
-    let name = nameInput.value.trim().split(/\s/).filter(v => v!== "").join(' ')
-    resolveNameAddress(name)
-    .then((state) => {
-      updateAddressState.call(this, state)
-    })
-    .catch((error) => {
-      updateAddressState('NETWORK-ERROR') 
-    })
+    let isEmpty = (name === '') ? true : false
+    let NameChanged = new CustomEvent('NameChanged', {composed: true, detail: { name, isEmpty}})
+    nameInput.dispatchEvent(NameChanged)
   })
 
   return nameInput
@@ -134,12 +94,17 @@ export default class foodEditor extends HTMLElement {
     this.nameInput = NameInput.call(this)
     this.container.appendChild(this.nameInput)
 
-    this.nameAddressState = document.createElement('div')
-    this.nameAddressState.classList.add(styleSheet.classes.nameAddressState)
-    this.container.appendChild(this.nameAddressState)
+    this.addressState = document.createElement('div')
+    this.addressState.classList.add(styleSheet.classes.addressState)
+    this.container.appendChild(this.addressState)
 
     this.nutrientTable = document.createElement('nutrient-table')
     this.container.appendChild(this.nutrientTable)
+
+    this.shadow.addEventListener('NameChanged', (e) => {
+      let constituentExists = this.nutrientTable.shadow.querySelector('.constituent')
+      this.nutrientTable.selector.hidden = (e.detail.isEmpty && !constituentExists) ? true : false
+    }, true)
   }
 
   compileData () {
