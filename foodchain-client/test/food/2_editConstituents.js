@@ -11,7 +11,7 @@ const selector = nutrientTable.find('.constituentSelector select')
 
 test
 .before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1})
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
 })
@@ -21,7 +21,7 @@ test
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1})
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .click(selector)
@@ -32,7 +32,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1})
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .click(selector)
@@ -43,7 +43,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1})
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Energy'))
   .click(selector)
@@ -54,7 +54,7 @@ test.before(async t => {
 })
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1})
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .click(selector)

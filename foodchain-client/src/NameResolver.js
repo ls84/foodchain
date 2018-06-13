@@ -27,19 +27,17 @@ const fetchState = async (name) => {
   .then((response) => {
     switch (`${response.status}|${response.ok}`) {
       case '404|false':
-        postMessage(['AddressStateFetched', name, null])
+        return Promise.resolve({ data: null })
         break
       case '200|true':
         return response.json()
         break
-      default:
-        poseMessage(['UnknowFetchState', name, `${response.status}|${response.ok}`])
     }
   })
   .then((json) => {
     // let data = cbor.decode(b64ToBuffer(json.data))
     let data = json.data
-    postMessage['AddressStateFetched', name, data]
+    postMessage(['AddressStateFetched', name, data])
   })
   .catch((error) => {
     postMessage(['AddressFetchError', name]) 

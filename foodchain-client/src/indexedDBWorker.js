@@ -46,8 +46,8 @@ class IndexedDB {
           }
         })
       })
-      .catch((error) => {
-        throw new Error(error)
+      .catch((e) => {
+        throw new Error(e.target.error)
       })
     })
   }
@@ -205,7 +205,9 @@ onmessage = function (e) {
       database.insertAll('food', e.data[1])
       .then((data) => {
         postMessage(['NewFoodInserted', data])
-        close()
+      })
+      .catch((e) => {
+        postMessage(['FoodInsertionError', e.message])
       })
       break
 

@@ -22,7 +22,7 @@ const nonExistsAddressStateRequest = RequestMock()
 .respond(null, 404)
 
 const signApple = async (t) => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1 })
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .typeText(nutrientTable.find('.constituent#Protein input'), '0.5')
@@ -34,7 +34,7 @@ const signApple = async (t) => {
 }
 
 const signBanana = async (t) => {
-  await t.typeText(nameInput, 'banana', { speed: 0.1 })
+  await t.typeText(nameInput, 'banana')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .typeText(nutrientTable.find('.constituent#Protein input'), '1.3')
@@ -71,7 +71,7 @@ const clearFoodStore = ClientFunction(() => {
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1 })
+  await t.typeText(nameInput, 'apple')
 })
 ('NON-EXISTS Name Address', async t => {
  await t.expect(signButton.hasClass('active')).ok('sign button should be activated')

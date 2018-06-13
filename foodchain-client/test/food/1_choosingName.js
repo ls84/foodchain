@@ -23,7 +23,7 @@ const nonExistsAddressStateRequest = RequestMock()
 .respond(null, 404)
 
 test.before(async t => {
-  await t.typeText(nameInput, 'apple', {speed: 0.1})
+  await t.typeText(nameInput, 'apple')
 })
 ('Type "apple"', async t => {
   await t.expect(await nutrientTable.find('.constituentSelector').hasAttribute('hidden')).notOk('constituentSelector should reveal itself')
@@ -32,7 +32,7 @@ test.before(async t => {
 test
 .requestHooks(nonExistsAddressStateRequest)
 .before(async t => {
-  await t.typeText(nameInput, 'apple', {speed: 0.1})
+  await t.typeText(nameInput, 'apple')
 })
 ('Type a non-exists name', async t => {
   await t.expect(addressState.withText(/new food/)).ok('address state should indicate it\'s a new food')
@@ -58,7 +58,7 @@ test.skip.before(async t => {
 
 test
 .before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1 })
+  await t.typeText(nameInput, 'apple')
   .typeText(nameInput, ' ', { replace: true })
 })
 ('Enter empty characters', async t => {
@@ -67,7 +67,7 @@ test
 
 test
 .before(async t => {
-  await t.typeText(nameInput, 'apple', { speed: 0.1 })
+  await t.typeText(nameInput, 'apple')
   .click(selector)
   .click(selector.find('option').withText('Protein'))
   .typeText(valueInput, '50')

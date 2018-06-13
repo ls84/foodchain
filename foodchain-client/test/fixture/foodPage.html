@@ -103,6 +103,10 @@
 
     <script type='module'>
 
+      window.committedFood = []
+      window.signedFoodData = []
+      window.submittedFoodData = []
+
       function populateFoodPage (data) {
         data.forEach((d) => {
           let foodItem = document.createElement('food-item')
@@ -173,6 +177,28 @@
         })
       }
 
+      function updateFavouriteDOM(data) {
+        let add = data[0]
+        let remove = data[1]
+        add.forEach((d) => {
+          let foodItem = document.createElement('food-item')
+          foodItem.init(d, 'BLOCK')
+          foodItem.setAttribute('data-status', 'COMMITTED')
+          document.body.appendChild(foodItem)
+        })
+
+        remove.forEach((n) => {
+          document.querySelectorAll('food-item[data-status="COMMITTED"]').forEach((e) => {
+            if (e.name.textContent === n) e.remove()
+          })
+        })
+      }
+
+      function syncWithAddress () {
+        let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
+        NETWorker.postMessage(['FetchMyAddressState', myAddress])
+      }
+
       worker.onmessage = (e) => {
         switch (e.data[0]) {
           case 'AllFoodItems':
@@ -197,16 +223,6 @@
 
       NETWorker.onmessage = (e) => {
         switch (e.data[0]) {
-          case 'BatchesSubmitted':
-            let signedItemsUpdate = signedFoodData.map((d) => {
-              d.status = 'SUBMITTED'
-              d.batchID = e.data[1]
-              return d
-            })
-            submittedFoodData = submittedFoodData.concat(signedItemsUpdate)
-            worker.postMessage(['UpdateFoodItems', signedItemsUpdate])
-            break
-
           case 'MyAddressStateFetched':
             let favourites = e.data[1].favourites
             if (favourites) worker.postMessage(['MergeWithFavourites', favourites])
@@ -226,71 +242,42 @@
         }
       }
 
-      worker.postMessage(['GetAllFoodItems'])
-
-      window.committedFood = []
-      window.signedFoodData = []
-      window.submittedFoodData = []
-
-      document.body.addEventListener('FoodSigned', (e) => {
+      document.addEventListener('FoodSigned', (e) => {
         clearEditor()
         appendNewFood(e.detail)
         signedFoodData.push(e.detail)
       }, true)
 
-      const confirmSubmission = function () {
-        NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
-      }
+      document.addEventListener('FoodSubmitted', (e) => {
+      })
 
-      const SubmitButton = () => {
-        let submitButton = document.createElement('div')
-        submitButton.classList.add('submitButton')
-        submitButton.hidden = true
-        submitButton.textContent = 'Submit'
+      document.addEventListener('FoodCommitted', (e) => {
+      })
 
-        submitButton.addEventListener('click', (event) => {
-          let transactions = signedFoodData.map((d) => d.transaction )
-          return sawtooth.buildBatch(transactions)
-          .then((batch) => {
-            let batchListBytes = sawtooth.encodeBatchList([batch])
-            NETWorker.postMessage(['SubmitBatches', batchListBytes])
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-        })
-
-        return submitButton
-      }
-
-      const FoodSigning = async function() {
-        if (this.classList.contains('active')) {
-          let data = await foodEditor.compileData() 
-          let worker = new Worker('../../src/indexedDBWorker.js')
-          worker.postMessage(['InsertNewFood', [data]])
-
-          worker.onmessage = (e) => {
-            let foodSigned = new CustomEvent('FoodSigned', {detail: e.data[1][0]})
-            this.dispatchEvent(foodSigned)
-          }
-
-          worker.onerror = (e) => {
-            worker.terminate()
-          }
+      function AddressStateHandler (e) {
+        console.log(e.data)
+        switch (e.data[0]) {
+          case 'AddressStateFetched':
+            if (e.data[2] === null) {
+              foodEditor.addressState.textContent = 'new food'
+              signButton.classList.add('active')
+            }
+            break
         }
       }
 
-      const SignButton = () => {
-        let signButton = document.createElement('div')
-        signButton.classList.add('signButton')
-        signButton.hidden = true
-        signButton.textContent = 'Sign'
-        signButton.addEventListener('click', FoodSigning.bind(signButton))
+      document.addEventListener('NameChanged', (e) => {
+        signButton.hidden = (e.detail.isEmpty) ? true : false
+        signButton.classList.remove('active')
+        foodEditor.addressState.textContent = ''
 
-        return signButton
-      }
+        let name = e.detail.name
 
-// initialization steps
+        if (!e.detail.isEmpty) {
+          NameResolver.addEventListener('message', AddressStateHandler)
+          NameResolver.postMessage([e.detail.name, true])
+        }
+      }, true)
 
       let searchInput = document.createElement('input')
       searchInput.classList.value = 'searchInput'
@@ -310,63 +297,22 @@
 
       window.foodEditor = document.createElement('food-editor')
       document.body.appendChild(foodEditor)
-      document.addEventListener('NameChanged', (e) => {
-        signButton.hidden = (e.detail.isEmpty) ? true : false
-        signButton.classList.remove('active')
-        foodEditor.addressState.textContent = ''
 
-        let name = e.detail.name
-
-        let AddressStateHandler = function (e) {
-          if (e.data[1] === name) NameResolver.removeEventListener(e.type, AddressStateHandler)
-
-          switch (e.data[0]) {
-            case 'AddressStateFetched':
-              if (e.data[2] === null) {
-                foodEditor.addressState.textContent = 'new food'
-                signButton.classList.add('active')
-              }
-              break
-
-          }
-        }
-
-        if (!e.detail.isEmpty) {
-          NameResolver.addEventListener('message', AddressStateHandler)
-          NameResolver.postMessage([e.detail.name, true])
-        }
-      }, true)
-
-      window.signButton = SignButton()
+      import signButton from '../../src/signButton.js'
+      window.signButton = signButton
       document.body.appendChild(signButton)
 
-      let submitButton = SubmitButton()
+      const confirmSubmission = function () {
+        NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
+      }
+      
+      import SubmitButton from '../../src/submitButton.js'
+      window.submitButton = SubmitButton()
       document.body.appendChild(submitButton)
 
 // initialization steps
 
-      function updateFavouriteDOM(data) {
-        let add = data[0]
-        let remove = data[1]
-        add.forEach((d) => {
-          let foodItem = document.createElement('food-item')
-          foodItem.init(d, 'BLOCK')
-          foodItem.setAttribute('data-status', 'COMMITTED')
-          document.body.appendChild(foodItem)
-        })
-
-        remove.forEach((n) => {
-          document.querySelectorAll('food-item[data-status="COMMITTED"]').forEach((e) => {
-            if (e.name.textContent === n) e.remove()
-          })
-        })
-      }
-
-      function syncWithAddress () {
-        let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
-        NETWorker.postMessage(['FetchMyAddressState', myAddress])
-      }
-
+      worker.postMessage(['GetAllFoodItems'])
       syncWithAddress()
 
     </script>

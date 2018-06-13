@@ -21,7 +21,7 @@ onmessage = function (e) {
         postMessage(['BatchesSubmitted', batchID])
       })
       .catch((error) => {
-        postMessage('BatchesSubmissionError')
+        postMessage(['BatchesSubmissionError', error.message])
       })
       break
 
