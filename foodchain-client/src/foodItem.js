@@ -86,20 +86,11 @@ export default class foodItem extends HTMLElement {
   }
 
   init (data, source) {
-    switch (source) {
-      case 'EDITOR':
-        this.data.name = data.name
-        this.data.food = data
-        break
-      case 'DATABASE':
-        this.data.name = data.food.name
-        this.data.food = data.food
-        this.data.transaction = data.transaction
-        this.data.batchID = data.batchID
-        break
-      case 'BLOCK':
-        this.data.name = data.name
-    }
+    this.data.name = data.food.name
+    this.data.food = data.food
+    this.data.transaction = data.transaction
+    this.data.batchID = data.batchID
+    this.data.name = data.name
     if (!this.data.name) throw new Error('data does not have a name')
     this.name.textContent = this.data.name
 

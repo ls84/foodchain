@@ -2,7 +2,7 @@ function foodSubmittedHandler (e) {
   switch (e.data[0]) {
     case 'FoodItemsUpdated':
       e.data[1].forEach((d) => {
-        let FoodSubmitted = new CustomEvent('FoodSubmitted', { detail: d })
+        let FoodSubmitted = new CustomEvent('FoodSubmitted', { detail: { data: d } })
         submitButton.dispatchEvent(FoodSubmitted)
       })
   }

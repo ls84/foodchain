@@ -1,7 +1,7 @@
 function signedHandler (e) {
   switch (e.data[0]) {
     case 'NewFoodInserted':
-      let FoodSigned = new CustomEvent('FoodSigned', { detail: e.data[1][0] })
+      let FoodSigned = new CustomEvent('FoodSigned', { detail: { insert: true, data:e.data[1][0] } })
       signButton.dispatchEvent(FoodSigned)
   }
 }

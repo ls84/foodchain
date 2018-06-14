@@ -84,16 +84,22 @@ const myAddressState = RequestMock()
 .onRequestTo(new RegExp('/state'))
 .respond({
   data: {
-    favourites: {
-      'apple': {
-        timeStamp: Date.now(),
-        name: 'apple'
+    favourites: [
+      {
+        name: 'apple',
+        food: {
+          name: 'apple',
+          timeStamp: Date.now()
+        }
       },
-      'orange': {
-        timeStamp: Date.now(),
-        name: 'orange'
+      {
+        name: 'orange',
+        food: {
+          name: 'orange',
+          timeStamp: Date.now()
+        }
       }
-    }
+    ]
   }
 }, 200)
 

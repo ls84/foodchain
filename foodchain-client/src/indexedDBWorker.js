@@ -197,7 +197,7 @@ onmessage = function (e) {
     case 'GetAllFoodItems':
       database.getAll('food')
       .then((data) => {
-        postMessage(['AllFoodItems', data])
+        postMessage(['FoodItemsGet', data])
       })
       break
 
@@ -235,14 +235,14 @@ onmessage = function (e) {
 
       database.getAll('food')
       .then((data) => {
-        let block = new Set(Object.keys(favourites))
+        let block = new Set(favourites.map((f) => f.name))
         let local = new Set(data.map((d) => d.name))
 
         let add = new Set(block)
         for (let n of local) {
           add.delete(n)
         }
-        add.forEach((n) => { addData.push(favourites[n]) })
+        add.forEach((n) => { addData.push(favourites.find((f) => f.name === n)) })
         addData.forEach((v,i,a) => { a[i].status = 'COMMITTED' })
 
         let remove = new Set(local)

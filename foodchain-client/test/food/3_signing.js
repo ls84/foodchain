@@ -29,7 +29,7 @@ const signApple = async (t) => {
   .click(selector)
   .click(selector.find('option').withText('Energy'))
   .typeText(nutrientTable.find('.constituent#Energy input'), '95')
-  await blurInput()
+  .expect(foodEditor.find('.addressState').withText('new food').exists).ok('address state should be ready')
   await t.click(signButton)
 }
 
@@ -41,11 +41,12 @@ const signBanana = async (t) => {
   .click(selector)
   .click(selector.find('option').withText('Energy'))
   .typeText(nutrientTable.find('.constituent#Energy input'), '105')
-  await blurInput()
+  .expect(foodEditor.find('.addressState').withText('new food').exists).ok('address state should be ready')
   await t.click(signButton)
 }
 
 const getFoodData = ClientFunction(() => {
+  // TODO: this will trigger another Handler
   return new Promise((resolve, reject) => {
     worker.postMessage(['GetAllFoodItems'])
     worker.onmessage = function (event) {
