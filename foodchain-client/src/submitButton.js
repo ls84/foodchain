@@ -1,5 +1,15 @@
-function submittedHandler (e) {
+function foodSubmittedHandler (e) {
   switch (e.data[0]) {
+    case 'FoodItemsUpdated':
+      e.data[1].forEach((d) => {
+        let FoodSubmitted = new CustomEvent('FoodSubmitted', { detail: d })
+        submitButton.dispatchEvent(FoodSubmitted)
+      })
+  }
+}
+
+function submittedHandler (e) {
+switch (e.data[0]) {
     case 'BatchesSubmitted':
       let signedItemsUpdate = signedFoodData.map((d) => {
         d.status = 'SUBMITTED'
@@ -7,6 +17,7 @@ function submittedHandler (e) {
         return d
       })
       submittedFoodData = submittedFoodData.concat(signedItemsUpdate)
+      worker.addEventListener('message', foodSubmittedHandler)
       worker.postMessage(['UpdateFoodItems', signedItemsUpdate])
       break
 
@@ -25,15 +36,11 @@ async function clickHandler () {
   NETWorker.postMessage(['SubmitBatches', batchListBytes])
 }
 
-function SubmitButton () {
-  let submitButton = document.createElement('div')
-  submitButton.classList.add('submitButton')
-  submitButton.hidden = true
-  submitButton.textContent = 'Submit'
+let submitButton = document.createElement('div')
+submitButton.classList.add('submitButton')
+submitButton.hidden = true
+submitButton.textContent = 'Submit'
 
-  submitButton.addEventListener('click', clickHandler)
+submitButton.addEventListener('click', clickHandler)
 
-  return submitButton
-}
-
-export default SubmitButton
+export default submitButton

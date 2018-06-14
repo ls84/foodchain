@@ -221,12 +221,10 @@ onmessage = function (e) {
     case 'UpdateFoodItems':
       database.updateAll('food',e.data[1])
       .then((data) => {
-        let isSIGNED = (a) => a.every((v) => /SIGNED/.test(v.status))
-        let isSUBMITTED = (a) => a.every((v) => /SUBMITTED/.test(v.status))
-        let isCOMMITTED = (a) => a.every((v) => /COMMITTED/.test(v.status))
-
-        if (isSUBMITTED(data)) postMessage(['FoodSubmitted', data])
-        if (isCOMMITTED(data)) postMessage(['FoodCommitted', data])
+        postMessage(['FoodItemsUpdated', data])
+      })
+      .catch((e) => {
+        postMessage(['FoodItemsUpdateError'])
       })
       break
 

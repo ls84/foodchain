@@ -156,27 +156,6 @@
         submitButton.hidden = false
       }
 
-      function appendSignedFoodAsSubmitted(data) {
-        let signedItems = document.querySelectorAll('food-item[data-status="SIGNED"]')
-        signedItems.forEach((i) => {
-          i.setAttribute('data-status', 'SUBMITTED')
-          i.confirmSubmission = confirmSubmission.bind(i)
-          document.body.appendChild(i)
-        })
-
-        submitButton.hidden = true
-      }
-
-      function appendSubmittedFoodAsCommitted(data) {
-        document.querySelectorAll('food-item[data-status="SUBMITTED"]')
-        .forEach((n) => {
-          if (n.name.textContent === data[0].name) {
-            n.setAttribute('data-status', 'COMMITTED')
-            document.body.appendChild(n)
-          }
-        })
-      }
-
       function updateFavouriteDOM(data) {
         let add = data[0]
         let remove = data[1]
@@ -205,16 +184,6 @@
             populateFoodPage(e.data[1])
             break
 
-          case 'FoodSubmitted':
-            appendSignedFoodAsSubmitted(e.data[1])
-            signedFoodData = []
-            break
-
-          case 'FoodCommitted':
-            appendSubmittedFoodAsCommitted(e.data[1])
-            submittedFoodData = submittedFoodData.filter((d) => d.batchID !== e.data[1][0].batchID)
-            break
-
           case 'FavouritesMerged':
             updateFavouriteDOM(e.data[1])
             break
@@ -227,18 +196,6 @@
             let favourites = e.data[1].favourites
             if (favourites) worker.postMessage(['MergeWithFavourites', favourites])
             break
-
-          case 'SubmissionConfirmed':
-            let submittedItemsUpdate = submittedFoodData.filter((d) => {
-              return d.batchID === e.data[1] 
-            })
-            .map((d) => {
-              d.status = 'COMMITTED'
-              return d
-            })
-
-            worker.postMessage(['UpdateFoodItems', submittedItemsUpdate])
-            break
         }
       }
 
@@ -249,11 +206,61 @@
       }, true)
 
       document.addEventListener('FoodSubmitted', (e) => {
-      })
+        if (!e.detail.insert) {
+          let nodeList = document.querySelectorAll('food-item[data-status="SIGNED"]')
+          let foodItem = Array.from(nodeList)
+          .find((n) => n.name.textContent === e.detail.name)
+          foodItem.setAttribute('data-status', 'SUBMITTED')
+          document.body.appendChild(foodItem)
+        }
+      }, true)
 
       document.addEventListener('FoodCommitted', (e) => {
-      })
+        if (!e.detail.insert) {
+          let nodeList = document.querySelectorAll('food-item[data-status="SUBMITTED"]')
+          let foodItem = Array.from(nodeList)
+          .find((n) => n.name.textContent = e.detail.name)
+          foodItem.setAttribute('data-status', 'COMMITTED')
+          document.body.appendChild(foodItem)
+        }
+      }, true)
 
+// Confirm Submission
+      
+      function confirmUpdateHandler(e) {
+        switch(e.data[0]) {
+          case 'FoodItemsUpdated':
+            e.data[1].forEach((d) => {
+              document.dispatchEvent(new CustomEvent('FoodCommitted', { detail: d }))
+            })
+        }
+      }
+
+      function confirmHandler (e) {
+        switch (e.data[0]) {
+          case 'SubmissionConfirmed':
+            let submittedItemsUpdate = submittedFoodData.filter((d) => {
+              return d.batchID === e.data[1] 
+            })
+            .map((d) => {
+              d.status = 'COMMITTED'
+              return d
+            })
+
+            worker.addEventListener('message', confirmUpdateHandler)
+            worker.postMessage(['UpdateFoodItems', submittedItemsUpdate])
+            break
+        }
+      }
+
+      const confirmSubmission = function () {
+        NETWorker.addEventListener('message', confirmHandler)
+        NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
+      }
+
+// Confirm Submission
+
+// Name Change
       function AddressStateHandler (e) {
         console.log(e.data)
         switch (e.data[0]) {
@@ -278,6 +285,7 @@
           NameResolver.postMessage([e.detail.name, true])
         }
       }, true)
+// Name Change
 
       let searchInput = document.createElement('input')
       searchInput.classList.value = 'searchInput'
@@ -302,12 +310,10 @@
       window.signButton = signButton
       document.body.appendChild(signButton)
 
-      const confirmSubmission = function () {
-        NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
-      }
+
       
-      import SubmitButton from '../../src/submitButton.js'
-      window.submitButton = SubmitButton()
+      import submitButton from '../../src/submitButton.js'
+      window.submitButton = submitButton
       document.body.appendChild(submitButton)
 
 // initialization steps
