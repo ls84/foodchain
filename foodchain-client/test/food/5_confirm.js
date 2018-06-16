@@ -20,6 +20,7 @@ const injectSubmittedApple = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
@@ -44,6 +45,7 @@ const injectCommittedApple = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
@@ -56,10 +58,10 @@ const injectCommittedApple = ClientFunction(() => {
 
 const clearFoodStore = ClientFunction(() => {
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['ClearStore', 'food'])
     worker.onmessage = (event) => {
       if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
-      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
       resolve()
     }
     worker.onerror = (error) => {

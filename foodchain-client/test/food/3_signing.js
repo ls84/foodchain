@@ -46,22 +46,28 @@ const signBanana = async (t) => {
 }
 
 const getFoodData = ClientFunction(() => {
-  // TODO: this will trigger another Handler
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['GetAllFoodItems'])
     worker.onmessage = function (event) {
       resolve(event.data[1])
+      worker.terminate()
+    }
+    worker.onerror = (e) => {
+      worker.terminate()
+      reject(e)
     }
   })
 })
 
 const clearFoodStore = ClientFunction(() => {
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['ClearStore', 'food'])
     worker.onmessage = (event) => {
       if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
-      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
       resolve()
+      worker.terminate()
     }
     worker.onerror = (error) => {
       reject(error)

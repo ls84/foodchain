@@ -21,10 +21,11 @@ const injectApple = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
-    let worker = new Worker('../../src/indexedDBWorker.js')
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+      worker.terminate()
     }
     worker.onerror = (e) => {
       worker.terminate()
@@ -47,10 +48,11 @@ const injectBanana = ClientFunction(() => {
   }
 
   return new Promise((resolve, reject) => {
-    let worker = new Worker('../../src/indexedDBWorker.js')
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['InsertNewFood', [data]])
     worker.onmessage = (e) => {
       if (e.data[0] === 'NewFoodInserted') resolve(e.data[1])
+      worker.terminate()
     }
     worker.onerror = (e) => {
       worker.terminate()
@@ -61,19 +63,25 @@ const injectBanana = ClientFunction(() => {
 
 const getFoodData = ClientFunction(() => {
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['GetAllFoodItems'])
     worker.onmessage = function (event) {
       resolve(event.data[1])
+      worker.terminate()
+    }
+    worker.onerror = (e) => {
+      worker.terminate()
+      reject(e)
     }
   })
 })
 
 const clearFoodStore = ClientFunction(() => {
   return new Promise((resolve, reject) => {
+    let worker = new Worker('../../src/DBWorker.js')
     worker.postMessage(['ClearStore', 'food'])
     worker.onmessage = (event) => {
       if (event.data[0] !== 'StoreCleared') reject(new Error('Food cant be cleared'))
-      if (event.data[1] !== 'food') reject(new Error('Food cant be cleared'))
       resolve()
     }
     worker.onerror = (error) => {

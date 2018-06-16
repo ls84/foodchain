@@ -17,8 +17,8 @@ switch (e.data[0]) {
         return d
       })
       submittedFoodData = submittedFoodData.concat(signedItemsUpdate)
-      worker.addEventListener('message', foodSubmittedHandler)
-      worker.postMessage(['UpdateFoodItems', signedItemsUpdate])
+      DB.addEventListener('message', foodSubmittedHandler)
+      DB.postMessage(['UpdateFoodItems', signedItemsUpdate])
       break
 
     case 'BatchesSubmissionError':
@@ -31,9 +31,9 @@ async function clickHandler () {
   const batch = await sawtooth.buildBatch(transactions)
   let batchListBytes = sawtooth.encodeBatchList([batch])
 
-  NETWorker.addEventListener('message', submittedHandler)
+  BLOCK.addEventListener('message', submittedHandler)
 
-  NETWorker.postMessage(['SubmitBatches', batchListBytes])
+  BLOCK.postMessage(['SubmitBatches', batchListBytes])
 }
 
 let submitButton = document.createElement('div')

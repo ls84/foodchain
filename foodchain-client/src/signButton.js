@@ -9,9 +9,9 @@ function signedHandler (e) {
 async function sign () {
   if (this.classList.contains('active')) {
     let data = await foodEditor.compileData()
-    worker.addEventListener('message', signedHandler)
+    DB.addEventListener('message', signedHandler)
 
-    worker.postMessage(['InsertNewFood', [data]])
+    DB.postMessage(['InsertNewFood', [data]])
   }
 }
 

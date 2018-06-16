@@ -10,7 +10,6 @@
     <script src="../../dist/external/jss.min.js"></script>
     <script src="../../dist/external/jss-nested.min.js"></script>
 
-
     <style>
       body {
         background-color: whitesmoke;
@@ -70,8 +69,6 @@
   </head>
   <body>
     <script type="module">
-      window.serverAddress = ''
-
       import { sha256Hex } from '../../src/hashing.js'
       window.sha256Hex = sha256Hex
 
@@ -95,14 +92,13 @@
 
       window.sawtooth = new Sawtooth(key)
 
-      window.worker = new Worker('../../src/indexedDBWorker.js')
-      window.NETWorker = new Worker('../../src/NETWorker.js')
+      window.DB = new Worker('../../src/DBWorker.js')
+      window.BLOCK = new Worker('../../src/BlockWorker.js')
       window.NameResolver = new Worker('../../src/NameResolver.js')
 
     </script>
 
     <script type='module'>
-
       window.signedFoodData = []
       window.submittedFoodData = []
       window.committedFood = []
@@ -117,6 +113,7 @@
         foodEditor.nutrientTable.selector.hidden = true
       }
 
+// DOM appending
       document.addEventListener('FoodSigned', (e) => {
           let data = e.detail.data
           let foodItem = document.createElement('food-item')
@@ -172,6 +169,8 @@
         submittedFoodData = submittedFoodData.filter((d) => d.name !== data.name)
       }, true)
 
+// DOM appending
+
 // Confirm Submission
       
       function confirmUpdateHandler(e) {
@@ -193,22 +192,21 @@
               d.status = 'COMMITTED'
               return d
             })
-            worker.addEventListener('message', confirmUpdateHandler)
-            worker.postMessage(['UpdateFoodItems', submittedItemsUpdate])
+            DB.addEventListener('message', confirmUpdateHandler)
+            DB.postMessage(['UpdateFoodItems', submittedItemsUpdate])
             break
         }
       }
 
       function confirmSubmission () {
-        NETWorker.addEventListener('message', confirmHandler)
-        NETWorker.postMessage(['ConfirmSubmission', this.data.batchID])
+        BLOCK.addEventListener('message', confirmHandler)
+        BLOCK.postMessage(['ConfirmSubmission', this.data.batchID])
       }
 
 // Confirm Submission
 
 // Name Change
       function AddressStateHandler (e) {
-        console.log(e.data)
         switch (e.data[0]) {
           case 'AddressStateFetched':
             if (e.data[2] === null) {
@@ -233,6 +231,7 @@
       }, true)
 // Name Change
 
+// UI Init
       let searchInput = document.createElement('input')
       searchInput.classList.value = 'searchInput'
       searchInput.setAttribute('placeholder', 'Search Food Here...')
@@ -259,8 +258,9 @@
       import submitButton from '../../src/submitButton.js'
       window.submitButton = submitButton
       document.body.appendChild(submitButton)
+// UI Init
 
-//////
+// populateFoodPage
       function updateFavouriteDOM(data) {
         let add = data[0]
         let remove = data[1]
@@ -290,8 +290,8 @@
           case 'MyAddressStateFetched':
             let favourites = e.data[1].favourites
             if (favourites) {
-              worker.addEventListener('message', FavouritesMergedHandler)
-              worker.postMessage(['MergeWithFavourites', favourites])
+              DB.addEventListener('message', FavouritesMergedHandler)
+              DB.postMessage(['MergeWithFavourites', favourites])
             }
             break
         }
@@ -299,8 +299,8 @@
 
       function syncWithAddress () {
         let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
-        NETWorker.addEventListener('message', MyAddressStateHandler)
-        NETWorker.postMessage(['FetchMyAddressState', myAddress])
+        BLOCK.addEventListener('message', MyAddressStateHandler)
+        BLOCK.postMessage(['FetchMyAddressState', myAddress])
       }
       
       function localFoodItemsHandler (e) {
@@ -317,11 +317,13 @@
       }
 
       function populateFoodPage () {
-        worker.addEventListener('message', localFoodItemsHandler)
-        worker.postMessage(['GetAllFoodItems'])
+        DB.addEventListener('message', localFoodItemsHandler)
+        DB.postMessage(['GetAllFoodItems'])
       }
 
       populateFoodPage()
+
+// populateFoodPage
 
     </script>
   </body>
