@@ -1,29 +1,3 @@
-// window.b64ToBuffer = (base64) => {
-//   let binaryString = window.atob(base64)
-//   return (new Uint8Array(binaryString.length))
-//   .map((v, i) => binaryString.charCodeAt(i))
-//   .buffer
-// }
-
-function b64ToBuffer (base64) {
-  let binaryString = window.atob(base64)
-  return (new Uint8Array(binaryString.length))
-  .map((v, i) => binaryString.charCodeAt(i))
-  .buffer
-}
-
-window.b64ToBuffer = b64ToBuffer
-
-function clearEditor () {
-  //TODO: should be foodEditor.reset()
-  foodEditor.nutrientTable.shadow.querySelectorAll('li:not(.constituentSelector)').forEach((n) => {
-    n.remove()
-  })
-  foodEditor.nameInput.value = ''
-  foodEditor.addressNameState
-  foodEditor.nutrientTable.selector.hidden = true
-}
-
 // food-item appending
 document.addEventListener('FoodSigned', (e) => {
     let data = e.detail.data
@@ -32,8 +6,8 @@ document.addEventListener('FoodSigned', (e) => {
     foodItem.setAttribute('data-status', 'SIGNED')
     document.body.insertBefore(foodItem, submitButton)
     signedFoodData.push(data)
-    // TODO: clear should be toggled
-    clearEditor()
+    // TODO: reset should be toggled
+    foodEditor.reset()
 
     submitButton.hidden = false
 }, true)
@@ -160,7 +134,6 @@ function updateFavouriteDOM(data) {
     })
   })
 }
-
 
 function FavouritesMergedHandler (e) {
   switch (e.data[0]) {

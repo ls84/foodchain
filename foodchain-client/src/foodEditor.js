@@ -140,4 +140,12 @@ export default class foodEditor extends HTMLElement {
       console.log(error)
     })
   }
+
+  reset () {
+    this.nutrientTable.shadow.querySelectorAll('li:not(.constituentSelector)')
+    .forEach((n) => { n.remove() })
+    this.nameInput.value = ''
+    this.addressNameState
+    this.nutrientTable.selector.hidden = true
+  }
 }
