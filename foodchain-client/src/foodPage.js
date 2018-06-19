@@ -71,7 +71,7 @@ document.addEventListener('FoodCommitted', (e) => {
   if (!e.detail.insert) {
     let nodeList = document.querySelectorAll('food-item[data-status="SUBMITTED"]')
     foodItem = Array.from(nodeList)
-    .find((n) => n.name.textContent = data.name)
+    .find((n) => n.name.textContent === data.name)
   }
   foodItem.setAttribute('data-status', 'COMMITTED')
   document.body.appendChild(foodItem)
@@ -85,6 +85,7 @@ document.addEventListener('FoodCommitted', (e) => {
 // Confirm Submission
 
 function confirmUpdateHandler(e) {
+  DB.removeEventListener(e.type, confirmUpdateHandler)
   switch(e.data[0]) {
     case 'FoodItemsUpdated':
       e.data[1].forEach((d) => {
@@ -94,6 +95,7 @@ function confirmUpdateHandler(e) {
 }
 
 function confirmHandler (e) {
+  BLOCK.removeEventListener(e.type, confirmHandler)
   switch (e.data[0]) {
     case 'SubmissionConfirmed':
       let submittedItemsUpdate = submittedFoodData.filter((d) => {
@@ -111,7 +113,8 @@ function confirmHandler (e) {
 
 function confirmSubmission () {
   BLOCK.addEventListener('message', confirmHandler)
-  BLOCK.postMessage(['ConfirmSubmission', this.data.batchID])
+  let batchID = submittedFoodData.find((d) => d.name === this.data.name).batchID
+  BLOCK.postMessage(['ConfirmSubmission', batchID])
 }
 
 // Confirm Submission

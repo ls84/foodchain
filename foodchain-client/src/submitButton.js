@@ -1,4 +1,5 @@
 function foodSubmittedHandler (e) {
+  DB.removeEventListener(e.type, foodSubmittedHandler)
   switch (e.data[0]) {
     case 'FoodItemsUpdated':
       e.data[1].forEach((d) => {
@@ -9,21 +10,22 @@ function foodSubmittedHandler (e) {
 }
 
 function submittedHandler (e) {
-switch (e.data[0]) {
-    case 'BatchesSubmitted':
-      let signedItemsUpdate = signedFoodData.map((d) => {
-        d.status = 'SUBMITTED'
-        d.batchID = e.data[1]
-        return d
-      })
-      submittedFoodData = submittedFoodData.concat(signedItemsUpdate)
-      DB.addEventListener('message', foodSubmittedHandler)
-      DB.postMessage(['UpdateFoodItems', signedItemsUpdate])
-      break
+  BLOCK.removeEventListener(e.type, submittedHandler)
 
-    case 'BatchesSubmissionError':
-      console.log(e.data[0], e.data[1])
-  }
+  switch (e.data[0]) {
+      case 'BatchesSubmitted':
+        let signedItemsUpdate = signedFoodData.map((d) => {
+          d.status = 'SUBMITTED'
+          d.batchID = e.data[1]
+          return d
+        })
+        DB.addEventListener('message', foodSubmittedHandler)
+        DB.postMessage(['UpdateFoodItems', signedItemsUpdate])
+        break
+
+      case 'BatchesSubmissionError':
+        console.log(e.data[0], e.data[1])
+    }
 }
 
 async function clickHandler () {
