@@ -11,7 +11,6 @@ function foodSubmittedHandler (e) {
 
 function submittedHandler (e) {
   BLOCK.removeEventListener(e.type, submittedHandler)
-
   switch (e.data[0]) {
       case 'BatchesSubmitted':
         let signedItemsUpdate = signedFoodData.map((d) => {
@@ -34,7 +33,6 @@ async function clickHandler () {
   let batchListBytes = sawtooth.encodeBatchList([batch])
 
   BLOCK.addEventListener('message', submittedHandler)
-
   BLOCK.postMessage(['SubmitBatches', batchListBytes])
 }
 

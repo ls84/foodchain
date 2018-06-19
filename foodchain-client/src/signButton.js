@@ -1,4 +1,5 @@
 function signedHandler (e) {
+  DB.removeEventListener(e.type, signedHandler)
   switch (e.data[0]) {
     case 'NewFoodInserted':
       let FoodSigned = new CustomEvent('FoodSigned', { detail: { insert: true, data:e.data[1][0] } })
