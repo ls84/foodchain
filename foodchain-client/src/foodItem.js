@@ -68,16 +68,19 @@ export default class foodItem extends HTMLElement {
     if (name === 'data-status') {
       switch (newValue) {
         case 'SIGNED':
+          this.container.className = 'container'
           this.container.classList.add('signed')
           this.nutrientTable.setAttribute('data-review', true)
           break
 
         case 'SUBMITTED':
+          this.container.className = 'container'
           this.container.classList.add('submitted')
           this.nutrientTable.setAttribute('data-review', true)
           break
 
         case 'COMMITTED':
+          this.container.className = 'container'
           this.container.classList.add('committed')
           this.nutrientTable.setAttribute('data-review', true)
           break

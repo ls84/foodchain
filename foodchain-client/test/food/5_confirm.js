@@ -72,7 +72,7 @@ const clearFoodStore = ClientFunction(() => {
 
 const goodConfirmation = RequestMock()
 .onRequestTo(/\/batch_status/)
-.respond({status: 'COMMITTED'}, 200)
+.respond({ data: [ { status: 'COMMITTED' } ] }, 200)
 
 test
 .requestHooks(goodConfirmation)

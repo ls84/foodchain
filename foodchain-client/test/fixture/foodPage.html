@@ -14,61 +14,18 @@
       body {
         background-color: whitesmoke;
       }
-
-      .searchInput {
-        width: 100%;
-        height: 42px;
-        padding-left: 10px;
-        font-size: 24px;
-        font-family: sans-serif;
-        margin-bottom: 10px;
-        border: none;
-        outline:none;
-      }
-      
-      .searchInput::placeholder {
-        padding-left: 10px;
-        font-size: 16px;
-        font-weight: 100;
-        color: lightgrey;
-      }
-
-      .signButton {
-        height: 30px;
-        width: 60px;
-        position: relative;
-        left: calc(100% - 60px);
-        line-height:30px;
-        text-align: center;
-        background-color: white;
-        margin-top: 10px;
-        margin-bottom: 20px;
-        font-family: sans-serif;
-        color: lightgrey;
-      }
-
-      .signButton.active {
-        color: black
-      }
-
-      .submitButton {
-        height: 30px;
-        width: 60px;
-        position: relative;
-        left: calc(100% - 60px);
-        line-height:30px;
-        text-align: center;
-        background-color: white;
-        margin-top: 10px;
-        margin-bottom: 20px;
-        font-family: sans-serif;
-        color: black;
-      }
-
     </style>
+    <link rel="stylesheet" type="text/css" href="../../src/styles/foodPage.css">
   </head>
   <body>
-    <script type="module">
+    <script type='module'>
+      window.DB = new Worker('../../src/DBWorker.js')
+      window.BLOCK = new Worker('../../src/BlockWorker.js')
+      window.NameResolver = new Worker('../../src/NameResolver.js')
+
+      import sawtooth from  '../../src/Sawtooth.js'
+      window.sawtooth = sawtooth
+
       import { sha256Hex } from '../../src/hashing.js'
       window.sha256Hex = sha256Hex
 
@@ -81,250 +38,21 @@
       import foodItem from '../../src/foodItem.js'
       customElements.define('food-item', foodItem)
 
-      import { generateNewKey, importKey, Sawtooth } from '../../src/sawtooth.js'
+      import signButton from '../../src/signButton.js'
+      window.signButton = signButton
 
-      let key
-      try {
-        key = importKey()
-      } catch (error) {
-        if (error.message === 'there is no key') key = generateNewKey()
-      }
+      import submitButton from '../../src/submitButton.js'
+      window.submitButton = submitButton
 
-      window.sawtooth = new Sawtooth(key)
-
-      window.DB = new Worker('../../src/DBWorker.js')
-      window.BLOCK = new Worker('../../src/BlockWorker.js')
-      window.NameResolver = new Worker('../../src/NameResolver.js')
-
+      import foodPage from '../../src/foodPage.js'
+      window.foodPage = foodPage
     </script>
-
     <script type='module'>
       window.signedFoodData = []
       window.submittedFoodData = []
       window.committedFood = []
 
-      function clearEditor () {
-        //TODO: should be foodEditor.reset()
-        foodEditor.nutrientTable.shadow.querySelectorAll('li:not(.constituentSelector)').forEach((n) => {
-          n.remove()
-        })
-        foodEditor.nameInput.value = ''
-        foodEditor.addressNameState
-        foodEditor.nutrientTable.selector.hidden = true
-      }
-
-// DOM appending
-      document.addEventListener('FoodSigned', (e) => {
-          let data = e.detail.data
-          let foodItem = document.createElement('food-item')
-          foodItem.init(data)
-          foodItem.setAttribute('data-status', 'SIGNED')
-          document.body.insertBefore(foodItem, submitButton)
-          signedFoodData.push(data)
-          // TODO: clear should be toggled
-          clearEditor()
-
-          submitButton.hidden = false
-      }, true)
-
-      document.addEventListener('FoodSubmitted', (e) => {
-        let data = e.detail.data
-        let foodItem
-        if (e.detail.insert) {
-          foodItem = document.createElement('food-item')
-          foodItem.init(data, 'DATABASE')
-        }
-        if (!e.detail.insert) {
-          let nodeList = document.querySelectorAll('food-item[data-status="SIGNED"]')
-          foodItem = Array.from(nodeList)
-          .find((n) => n.name.textContent === data.name)
-        }
-        foodItem.confirmSubmission = confirmSubmission.bind(foodItem)
-        foodItem.setAttribute('data-status', 'SUBMITTED')
-        document.body.appendChild(foodItem)
-
-        let remainingItems = document.querySelectorAll('food-item[data-status="SIGNED"]').length
-        if (remainingItems === 0) submitButton.hidden = true
-
-        submittedFoodData.push(data)
-        signedFoodData = signedFoodData.filter((d) => d.name !== data.name)
-      }, true)
-
-      document.addEventListener('FoodCommitted', (e) => {
-        let data = e.detail.data
-        let foodItem
-        if (e.detail.insert) {
-          foodItem = document.createElement('food-item')
-          foodItem.init(data, 'DATABASE')
-        }
-        if (!e.detail.insert) {
-          let nodeList = document.querySelectorAll('food-item[data-status="SUBMITTED"]')
-          foodItem = Array.from(nodeList)
-          .find((n) => n.name.textContent = data.name)
-        }
-        foodItem.setAttribute('data-status', 'COMMITTED')
-        document.body.appendChild(foodItem)
-
-        committedFood.push(foodItem)
-        submittedFoodData = submittedFoodData.filter((d) => d.name !== data.name)
-      }, true)
-
-// DOM appending
-
-// Confirm Submission
-      
-      function confirmUpdateHandler(e) {
-        switch(e.data[0]) {
-          case 'FoodItemsUpdated':
-            e.data[1].forEach((d) => {
-              document.dispatchEvent(new CustomEvent('FoodCommitted', { detail: { data: d } }))
-            })
-        }
-      }
-
-      function confirmHandler (e) {
-        switch (e.data[0]) {
-          case 'SubmissionConfirmed':
-            let submittedItemsUpdate = submittedFoodData.filter((d) => {
-              return d.batchID === e.data[1] 
-            })
-            .map((d) => {
-              d.status = 'COMMITTED'
-              return d
-            })
-            DB.addEventListener('message', confirmUpdateHandler)
-            DB.postMessage(['UpdateFoodItems', submittedItemsUpdate])
-            break
-        }
-      }
-
-      function confirmSubmission () {
-        BLOCK.addEventListener('message', confirmHandler)
-        BLOCK.postMessage(['ConfirmSubmission', this.data.batchID])
-      }
-
-// Confirm Submission
-
-// Name Change
-      function AddressStateHandler (e) {
-        switch (e.data[0]) {
-          case 'AddressStateFetched':
-            if (e.data[2] === null) {
-              foodEditor.addressState.textContent = 'new food'
-              signButton.classList.add('active')
-            }
-            break
-        }
-      }
-
-      document.addEventListener('NameChanged', (e) => {
-        signButton.hidden = (e.detail.isEmpty) ? true : false
-        signButton.classList.remove('active')
-        foodEditor.addressState.textContent = ''
-
-        let name = e.detail.name
-
-        if (!e.detail.isEmpty) {
-          NameResolver.addEventListener('message', AddressStateHandler)
-          NameResolver.postMessage([e.detail.name, true])
-        }
-      }, true)
-// Name Change
-
-// UI Init
-      let searchInput = document.createElement('input')
-      searchInput.classList.value = 'searchInput'
-      searchInput.setAttribute('placeholder', 'Search Food Here...')
-      searchInput.addEventListener('keyup', (event) => {
-        let name = event.target.value
-        switch (name) {
-          case '' :
-            committedFood.forEach((e) => { e.hidden = false })
-            break
-          default :
-          committedFood.filter((e) => !new RegExp(name).test(e.name.textContent))
-          .forEach((e) => { e.hidden = true})
-        }
-      })
-      document.body.append(searchInput)
-
-      window.foodEditor = document.createElement('food-editor')
-      document.body.appendChild(foodEditor)
-
-      import signButton from '../../src/signButton.js'
-      window.signButton = signButton
-      document.body.appendChild(signButton)
-      
-      import submitButton from '../../src/submitButton.js'
-      window.submitButton = submitButton
-      document.body.appendChild(submitButton)
-// UI Init
-
-// populateFoodPage
-      function updateFavouriteDOM(data) {
-        let add = data[0]
-        let remove = data[1]
-        add.forEach((d) => {
-          document.dispatchEvent(new CustomEvent('FoodCommitted', { detail: { insert: true, data: d }}))
-        })
-
-        remove.forEach((n) => {
-          committedFood = committedFood.filter((f) => f.name.textContent !== n )
-          document.querySelectorAll('food-item[data-status="COMMITTED"]').forEach((e) => {
-            if (e.name.textContent === n) e.remove()
-          })
-        })
-      }
-
-
-      function FavouritesMergedHandler (e) {
-        switch (e.data[0]) {
-          case 'FavouritesMerged':
-            updateFavouriteDOM(e.data[1])
-            break
-        }
-      }
-
-      function MyAddressStateHandler (e) {
-        switch (e.data[0]) {
-          case 'MyAddressStateFetched':
-            let favourites = e.data[1].favourites
-            if (favourites) {
-              DB.addEventListener('message', FavouritesMergedHandler)
-              DB.postMessage(['MergeWithFavourites', favourites])
-            }
-            break
-        }
-      }
-
-      function syncWithAddress () {
-        let myAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
-        BLOCK.addEventListener('message', MyAddressStateHandler)
-        BLOCK.postMessage(['FetchMyAddressState', myAddress])
-      }
-      
-      function localFoodItemsHandler (e) {
-        switch (e.data[0]) {
-          case 'FoodItemsGet':
-            e.data[1].forEach((d) => {
-              let status = d.status.toLowerCase()
-              let EventName = 'Food' + status.charAt(0).toUpperCase() + status.substr(1)
-              document.dispatchEvent(new CustomEvent(EventName, { detail: { insert: true, data: d } }))
-            })
-            syncWithAddress()
-
-        }
-      }
-
-      function populateFoodPage () {
-        DB.addEventListener('message', localFoodItemsHandler)
-        DB.postMessage(['GetAllFoodItems'])
-      }
-
-      populateFoodPage()
-
-// populateFoodPage
-
+      foodPage()
     </script>
   </body>
 </html>

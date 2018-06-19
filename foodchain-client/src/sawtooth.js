@@ -96,4 +96,13 @@ class Sawtooth {
   }
 }
 
-export { generateNewKey, importKey, Sawtooth }
+let key
+try {
+  key = importKey()
+} catch (error) {
+  if (error.message === 'there is no key') key = generateNewKey()
+}
+
+let sawtooth = new Sawtooth(key)
+
+export default sawtooth

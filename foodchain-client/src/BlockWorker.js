@@ -1,5 +1,4 @@
 const serverAddress = ''
-// const serverAddress = 'https://bismuth83.net'
 
 onmessage = function (e) {
   switch(e.data[0]) {
@@ -36,8 +35,6 @@ onmessage = function (e) {
         return response.json()
       })
       .then((json) => {
-        // TODO:
-        // let data = cbor.decode(b64ToBuffer(json.data))
         let data = json.data
         postMessage(['MyAddressStateFetched', data])
       })
@@ -74,10 +71,9 @@ onmessage = function (e) {
     //   break
 
     case 'ConfirmSubmission':
-      fetch(`${serverAddress}/batch_status`, {
-        body: JSON.stringify(e.data[1]),
+      fetch(`${serverAddress}/batch_statuses?id=${e.data[1]}`, {
         headers: {'Content-Type': 'application/json'},
-        method: 'POST',
+        method: 'GET',
         mode: 'cors'
       })
       .then((response) => {
@@ -85,8 +81,9 @@ onmessage = function (e) {
         return response.json()
       })
       .then((json) => {
-        if (json.status === 'COMMITTED') postMessage(['SubmissionConfirmed', e.data[1]])
-        if (json.status === 'PENDING') postMessage(['SubmissionPending', e.data[1]])
+        let status = json.data[0].status
+        if (status === 'COMMITTED') postMessage(['SubmissionConfirmed', e.data[1]])
+        if (status === 'PENDING') postMessage(['SubmissionPending', e.data[1]])
       })
       .catch((error) => {
         postMessage(['SubmissionConfirmError'])

@@ -1,0 +1,49 @@
+.searchInput {
+  width: 100%;
+  height: 42px;
+  padding-left: 10px;
+  font-size: 24px;
+  font-family: sans-serif;
+  margin-bottom: 10px;
+  border: none;
+  outline:none;
+}
+
+.searchInput::placeholder {
+  padding-left: 10px;
+  font-size: 16px;
+  font-weight: 100;
+  color: lightgrey;
+}
+
+.signButton {
+  height: 30px;
+  width: 60px;
+  position: relative;
+  left: calc(100% - 60px);
+  line-height:30px;
+  text-align: center;
+  background-color: white;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-family: sans-serif;
+  color: lightgrey;
+}
+
+.signButton.active {
+  color: black
+}
+
+.submitButton {
+  height: 30px;
+  width: 60px;
+  position: relative;
+  left: calc(100% - 60px);
+  line-height:30px;
+  text-align: center;
+  background-color: white;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-family: sans-serif;
+  color: black;
+}

@@ -1,4 +1,5 @@
 import { Selector, RequestMock, ClientFunction } from 'testcafe'
+const cbor = require('cbor')
 
 fixture
 ('Search Committed Food')
@@ -76,36 +77,40 @@ const clearFoodStore = ClientFunction(() => {
   })
 })
 
+const myEmptyAddressStateData = {
+  consumption: [],
+  favourites: []
+}
+
 const myEmptyAddressState = RequestMock()
 .onRequestTo(new RegExp('/state'))
-.respond({
-  data: {
-    favourites: {}
-  }
-}, 200)
+.respond({ data: cbor.encode(myEmptyAddressStateData).toString('base64') }, 200)
+
+const myAddressStateData = {
+  consumption: [],
+  favourites: [
+    {
+      name: 'apple',
+      timeStamp: Date.now(),
+      food: {
+        name: 'apple',
+        Energy: 95
+      }
+    },
+    {
+      name: 'orange',
+      timeStamp: Date.now(),
+      food: {
+        name: 'orange',
+        Energy: 47
+      }
+    }
+  ]
+}
 
 const myAddressState = RequestMock()
 .onRequestTo(new RegExp('/state'))
-.respond({
-  data: {
-    favourites: [
-      {
-        name: 'apple',
-        food: {
-          name: 'apple',
-          timeStamp: Date.now()
-        }
-      },
-      {
-        name: 'orange',
-        food: {
-          name: 'orange',
-          timeStamp: Date.now()
-        }
-      }
-    ]
-  }
-}, 200)
+.respond({ data: cbor.encode(myAddressStateData).toString('base64') }, 200)
 
 test
 .before(async t => {

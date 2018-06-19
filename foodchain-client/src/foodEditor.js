@@ -111,7 +111,8 @@ export default class foodEditor extends HTMLElement {
     let name = this.nameInput.value
     let data = {
       name,
-      food: { name }
+      food: { name },
+      timeStamp: Date.now()
     }
     this.nutrientTable.shadow.querySelectorAll('.constituent').forEach((v) => {
       let value = v.querySelector('input').value
@@ -120,16 +121,16 @@ export default class foodEditor extends HTMLElement {
 
     return sha256Hex(name)
     .then((hex) => {
-      let address = '100000' + hex
+      let foodAddress = '100000' + hex
+      let signerAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
       let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
-      header.inputs = [address]
-      header.outputs = [address] 
+      header.inputs = [foodAddress, signerAddress]
+      header.outputs = [foodAddress, signerAddress] 
 
-      let payload = { action: 'create', food: data.food }
+      let payload = { action: 'create', data: data }
       return sawtooth.buildTransaction(header, payload)
     })
     .then((transaction) => {
-      data.timeStamp = Date.now()
       data.status = 'SIGNED'
       data.transaction = transaction
 
