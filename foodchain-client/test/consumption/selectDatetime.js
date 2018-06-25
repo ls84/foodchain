@@ -1,12 +1,11 @@
 import { Selector, ClientFunction } from 'testcafe'
 
 fixture
-.only
 ('Select Datetime')
 .page(`http://localhost:8002/test/fixture/consumption.html`)
 
-const datetimeInput = Selector(() => consumptionView.shadow.querySelector('datetime-input'))
-const getDatetimeValue = ClientFunction(() => consumptionView.datetimeInput.value)
+const datetimeInput = Selector(() => consumptionView.consumptionEditor.shadow.querySelector('.datetimeInput'))
+const getDatetimeValue = ClientFunction(() => consumptionView.consumptionEditor.value)
 
 test
 .before(async t => {

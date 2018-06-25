@@ -26,10 +26,19 @@ const styles = {
   },
   'foodSelector': {
     'background-color': 'white',
-    'height': '60px',
+    'height': '40px',
     'padding': '10px',
     '& .plusSign': {
-      'font-size': '30px'
+      'font-size': '30px',
+      'width': '40px',
+      'height': '40px',
+      'display': 'inline-block'
+    },
+    '& span': {
+      'font-size': '24px',
+      'font-family': 'sans-serif',
+      'font-weight': '100',
+      'color': 'grey'
     }
   }
 }
@@ -46,7 +55,7 @@ function formatLocalDatetime (datetime) {
   return `${year}-${month}-${date}T${hours}:${minutes}:00.000`
 }
 
-export default class datetimeInput extends HTMLElement {
+export default class consumptionEditor extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -69,12 +78,14 @@ export default class datetimeInput extends HTMLElement {
     plusSign.classList.add('plusSign')
     plusSign.textContent = '+'
     this.foodSelector.append(plusSign)
-
+    let label = document.createElement('span')
+    label.textContent = 'Add food ...'
+    this.foodSelector.append(label)
 
     container.appendChild(this.datetimeInput)
     container.appendChild(this.foodSelector)
 
     this.shadow.appendChild(container)
-    // this.shadow.appendChild(this.foodSelector)
+    this.shadow.appendChild(this.foodSelector)
   }
 }
