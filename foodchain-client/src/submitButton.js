@@ -1,10 +1,9 @@
 function foodSubmittedHandler (e) {
-  DB.removeEventListener(e.type, foodSubmittedHandler)
   switch (e.data[0]) {
     case 'FoodItemsUpdated':
       e.data[1].forEach((d) => {
         let FoodSubmitted = new CustomEvent('FoodSubmitted', { detail: { data: d } })
-        submitButton.dispatchEvent(FoodSubmitted)
+        this.dispatchEvent(FoodSubmitted)
       })
   }
 }
@@ -18,7 +17,7 @@ function submittedHandler (e) {
           d.batchID = e.data[1]
           return d
         })
-        DB.addEventListener('message', foodSubmittedHandler)
+        DB.addEventListener('message', foodSubmittedHandler.bind(this), { once: true })
         DB.postMessage(['UpdateFoodItems', signedItemsUpdate])
         break
 
@@ -28,19 +27,24 @@ function submittedHandler (e) {
 }
 
 async function clickHandler () {
+  console.log('submit clicked')
   let transactions = signedFoodData.map((d) => d.transaction )
   const batch = await sawtooth.buildBatch(transactions)
   let batchListBytes = sawtooth.encodeBatchList([batch])
 
-  BLOCK.addEventListener('message', submittedHandler)
+  BLOCK.addEventListener('message', submittedHandler.bind(this))
   BLOCK.postMessage(['SubmitBatches', batchListBytes])
 }
 
-let submitButton = document.createElement('div')
-submitButton.classList.add('submitButton')
-submitButton.hidden = true
-submitButton.textContent = 'Submit'
+function SubmitButton () {
+  let submitButton = document.createElement('div')
+  submitButton.classList.add('submitButton')
+  submitButton.hidden = true
+  submitButton.textContent = 'Submit'
 
-submitButton.addEventListener('click', clickHandler)
+  submitButton.addEventListener('click', clickHandler.bind(this))
 
-export default submitButton
+  return submitButton
+}
+
+export default SubmitButton

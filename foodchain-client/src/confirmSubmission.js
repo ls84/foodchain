@@ -1,9 +1,9 @@
 function confirmUpdateHandler(e) {
-  DB.removeEventListener(e.type, confirmUpdateHandler)
   switch(e.data[0]) {
     case 'FoodItemsUpdated':
       e.data[1].forEach((d) => {
-        document.dispatchEvent(new CustomEvent('FoodCommitted', { detail: { data: d } }))
+        this.dispatchEvent(new CustomEvent('FoodCommitted', { composed: true, detail: { data: d } }))
+        debugger
       })
   }
 }
@@ -19,14 +19,14 @@ function confirmHandler (e) {
         d.status = 'COMMITTED'
         return d
       })
-      DB.addEventListener('message', confirmUpdateHandler)
+      DB.addEventListener('message', confirmUpdateHandler.bind(this), { once: true })
       DB.postMessage(['UpdateFoodItems', submittedItemsUpdate])
       break
   }
 }
 
 function confirmSubmission () {
-  BLOCK.addEventListener('message', confirmHandler)
+  BLOCK.addEventListener('message', confirmHandler.bind(this))
   let batchID = submittedFoodData.find((d) => d.name === this.data.name).batchID
   BLOCK.postMessage(['ConfirmSubmission', batchID])
 }

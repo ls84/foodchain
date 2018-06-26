@@ -43,33 +43,6 @@ onmessage = function (e) {
       })
       break
 
-    // case 'FetchAddressState':
-    //   fetch(`${serverAddress}/state/${e.data[1]}`, {
-    //     headers: {'Content-Type': 'application/json'},
-    //     method: 'GET',
-    //     mode: 'cors'
-    //   })
-    //   .then((response) => {
-    //     if (response.status === 404) {
-    //       postMessage(['AddressStateFetched', null])
-    //       return
-    //     }
-
-    //     if (!response.ok) return Promise.reject(new Error('response is not okay'))
-
-    //     return response.json()
-    //   })
-    //   .then((json) => {
-    //     // let data = cbor.decode(b64ToBuffer(json.data))
-    //     let data = json.data
-    //     postMessage['AddressStateFetched', data]
-    //   })
-    //   .catch((error) => {
-    //     postMessage(['AddressFetchError']) 
-    //   })
-
-    //   break
-
     case 'ConfirmSubmission':
       fetch(`${serverAddress}/batch_statuses?id=${e.data[1]}`, {
         headers: {'Content-Type': 'application/json'},

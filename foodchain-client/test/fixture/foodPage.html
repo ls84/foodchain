@@ -41,24 +41,31 @@
       import foodItem from '../../src/foodItem.js'
       customElements.define('food-item', foodItem)
 
-      import signButton from '../../src/signButton.js'
-      window.signButton = signButton
+      import SignButton from '../../src/SignButton.js'
+      window.SignButton = SignButton
 
-      import submitButton from '../../src/submitButton.js'
-      window.submitButton = submitButton
+      import SubmitButton from '../../src/submitButton.js'
+      window.SubmitButton = SubmitButton
 
       import confirmSubmission from '../../src/confirmSubmission.js'
       window.confirmSubmission = confirmSubmission
 
-      import foodPage from '../../src/foodPage.js'
-      window.foodPage = foodPage
+      import { populateFoodView, syncFood } from '../../src/populateFoodView.js'
+      window.populateFoodView = populateFoodView
+      window.syncFood = syncFood
+
+      import foodView from '../../src/foodView.js'
+      customElements.define('food-view', foodView)
     </script>
     <script type='module'>
       window.signedFoodData = []
       window.submittedFoodData = []
       window.committedFood = []
 
-      foodPage()
+      window.foodView = document.createElement('food-view')
+      document.body.appendChild(foodView)
+
+      foodView.populateFoodView()
     </script>
   </body>
 </html>

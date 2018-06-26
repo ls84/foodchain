@@ -35,7 +35,6 @@ const fetchState = async (name) => {
     }
   })
   .then((json) => {
-    // let data = cbor.decode(b64ToBuffer(json.data))
     let data = json.data
     postMessage(['AddressStateFetched', name, data])
   })

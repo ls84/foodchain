@@ -158,7 +158,6 @@ const Selector = function () {
   selector.appendChild(energy)
 
   selector.addEventListener('change', (event) => {
-    // addConstituentToEditor.call(this, event.target.value)
     this.addConstituent(event.target.value)
     event.target.selectedIndex = 0
   })
