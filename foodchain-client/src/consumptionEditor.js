@@ -81,11 +81,22 @@ export default class consumptionEditor extends HTMLElement {
     let label = document.createElement('span')
     label.textContent = 'Add food ...'
     this.foodSelector.append(label)
+    this.foodSelector.addEventListener('click', (e) => {
+      this.dispatchEvent(new CustomEvent('SelectFood', { composed: true }))
+    })
 
     container.appendChild(this.datetimeInput)
     container.appendChild(this.foodSelector)
 
     this.shadow.appendChild(container)
     this.shadow.appendChild(this.foodSelector)
+
+    this.addEventListener('AddFood', (e) => {
+      let data = e.detail
+      let foodItem = document.createElement('food-item')
+      foodItem.init(data, 'DATABASE')
+      foodItem.setAttribute('data-status', 'ASFOOD')
+      this.shadow.insertBefore(foodItem, this.foodSelector)
+    })
   }
 }

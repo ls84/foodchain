@@ -28,8 +28,33 @@
       import { sha256Hex } from '../../src/hashing.js'
       window.sha256Hex = sha256Hex
 
+      import b64ToBuffer from '../../src/b64ToBuffer.js'
+      window.b64ToBuffer = b64ToBuffer
+
       import nutrientTable from '../../src/nutrientTable.js'
       customElements.define('nutrient-table', nutrientTable)
+
+      import foodEditor from '../../src/foodEditor.js'
+      customElements.define('food-editor', foodEditor)
+
+      import foodItem from '../../src/foodItem.js'
+      customElements.define('food-item', foodItem)
+
+      import SignButton from '../../src/SignButton.js'
+      window.SignButton = SignButton
+
+      import SubmitButton from '../../src/submitButton.js'
+      window.SubmitButton = SubmitButton
+
+      import confirmSubmission from '../../src/confirmSubmission.js'
+      window.confirmSubmission = confirmSubmission
+
+      import { populateFoodView, syncFood } from '../../src/populateFoodView.js'
+      window.populateFoodView = populateFoodView
+      window.syncFood = syncFood
+
+      import foodView from '../../src/foodView.js'
+      customElements.define('food-view', foodView)
 
       import consumptionEditor from '../../src/consumptionEditor.js'
       customElements.define('consumption-editor', consumptionEditor)
@@ -38,8 +63,30 @@
       customElements.define('consumption-view', consumptionView)
     </script>
     <script type='module'>
+      window.signedFoodData = []
+      window.submittedFoodData = []
+      window.committedFood = []
+
       window.consumptionView = document.createElement('consumption-view')
       document.body.appendChild(consumptionView)
+
+      window.foodView = document.createElement('food-view')
+      document.body.appendChild(foodView)
+      foodView.hidden = true
+      foodView.populateFoodView()
+
+      document.addEventListener('SelectFood', (e) => {
+        consumptionView.hidden = true
+        foodView.setAttribute('data-mode', 'SELECT')
+        foodView.hidden = false
+      }, true)
+
+      document.addEventListener('FoodSelected', (e) => {
+        let data = e.detail
+        foodView.hidden = true
+        consumptionView.hidden = false
+        consumptionView.consumptionEditor.dispatchEvent(new CustomEvent('AddFood', { composed: true, detail: data }))
+      }, true)
     </script>
   </body>
 </html>

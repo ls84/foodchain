@@ -149,6 +149,9 @@ function SearchInput () {
 }
 
 export default class foodView extends HTMLElement {
+
+  static get observedAttributes() { return ['data-mode'] }
+
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -163,6 +166,9 @@ export default class foodView extends HTMLElement {
     this.addEventListener('FoodSigned', foodSignedHandler.bind(this), true)
     this.addEventListener('FoodSubmitted', foodSubmittedHandler.bind(this), true)
     this.addEventListener('FoodCommitted', foodCommittedHandler.bind(this), true)
+    // this.addEventListener('FoodSelected', () => {
+    //   debugger
+    // }, true)
 
     //TODO:
     // this.searchInput.addEventListener
@@ -183,5 +189,12 @@ export default class foodView extends HTMLElement {
 
     this.populateFoodView = populateFoodView.bind(this)
     this.syncFood = syncFood.bind(this)
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'data-mode' && newValue === 'SELECT') {
+      this.shadow.querySelectorAll('food-item[data-status="COMMITTED"]')
+      .forEach((n) => { n.checkBox.classList.add('select') })
+    }
   }
 }

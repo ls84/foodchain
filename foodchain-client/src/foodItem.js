@@ -8,8 +8,23 @@ const styles = {
     'margin-bottom': '10px',
     'background-color': 'white',
     'font-family': 'sans-serif',
+    '&.asFood': {
+      'margin-bottom': '0'
+    },
     '&.submitted': {
       'background-color': 'lightyellow'
+    },
+    '& input': {
+      'display': 'none',
+      'float': 'left',
+      'height': '21px',
+      'margin': '0',
+      'width': '21px',
+      'margin-top': '8px',
+      'margin-right': '8px',
+      '&.select': {
+        'display': 'inline'
+      }
     }
   },
   'name': {
@@ -37,26 +52,40 @@ export default class foodItem extends HTMLElement {
     this.container = document.createElement('div')
     this.container.classList.add('container')
 
+    this.checkBox = document.createElement('input')
+    this.checkBox.setAttribute('type', 'checkbox')
+    this.checkBox.addEventListener('click', (e) => {
+      e.stopImmediatePropagation()
+      this.dispatchEvent(new CustomEvent('FoodSelected', { composed: true, detail: this.data }))
+    })
+
+    this.container.append(this.checkBox)
+
     this.name = document.createElement('div')
     this.name.classList.add('name')
     this.container.append(this.name)
 
     this.nutrientTable = document.createElement('nutrient-table')
+    
     this.nutrientTable.container.hidden = true
     this.container.append(this.nutrientTable)
 
     this.container.addEventListener('click', (event) => {
+      let currentState = this.nutrientTable.container.hidden
       let status = this.getAttribute('data-status')
       switch (status) {
         case 'SIGNED':
         case 'COMMITTED':
-          let currentState = this.nutrientTable.container.hidden
           this.nutrientTable.container.hidden = (currentState) ? false : true
           this.container.classList.value = 'container' 
           break
         case 'SUBMITTED':
           if (!this.confirmSubmission) throw new Error('confirm function is not defined')
           this.confirmSubmission()
+          break
+        case 'ASFOOD':
+          this.nutrientTable.container.hidden = (currentState) ? false : true
+          this.container.classList.value = 'container asFood' 
           break
       }
     })
@@ -82,6 +111,12 @@ export default class foodItem extends HTMLElement {
         case 'COMMITTED':
           this.container.className = 'container'
           this.container.classList.add('committed')
+          this.nutrientTable.setAttribute('data-review', true)
+          break
+
+        case 'ASFOOD':
+          this.container.className = 'container'
+          this.container.classList.add('asFood')
           this.nutrientTable.setAttribute('data-review', true)
           break
       }
