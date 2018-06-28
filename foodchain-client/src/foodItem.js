@@ -25,6 +25,18 @@ const styles = {
       '&.select': {
         'display': 'inline'
       }
+    },
+    '& .removeButton': {
+      'display': 'none',
+      'float': 'left',
+      'height': '35px',
+      'width': '40px',
+      'font-size': '21px',
+      'line-height': '35px',
+      'font-weight': '100',
+      '&.selected': {
+        'display': 'inline'
+      }
     }
   },
   'name': {
@@ -35,6 +47,47 @@ const styles = {
 }
 
 const styleSheet = JSS.createStyleSheet(styles)
+
+function CheckBox () {
+  let previousState = false
+  let checkBox = document.createElement('input')
+  checkBox.setAttribute('type', 'checkbox')
+  checkBox.addEventListener('click', (e) => {
+    e.stopImmediatePropagation()
+    if (!previousState) {
+      this.dispatchEvent(new CustomEvent('FoodSelected', { composed: true, detail: this.data }))
+    }
+    if (previousState) {
+      checkBox.checked = true
+    }
+    previousState = checkBox.checked
+  })
+
+  checkBox.uncheck = () => {
+    checkBox.checked = false
+    previousState = false
+  }
+
+  return checkBox
+}
+
+function RemoveButton () {
+  let removeButton = document.createElement('div')
+  removeButton.classList.add('removeButton')
+  removeButton.textContent = 'x'
+  removeButton.addEventListener('click', (e) => {
+    e.stopImmediatePropagation()
+    this.dispatchEvent(new CustomEvent('FoodRemovedFromConsumption', { composed: true, detail: this.name.textContent }))
+    this.remove()
+  })
+
+  return removeButton
+}
+
+function toggleNutrientTable (e) {
+  let currentState = this.nutrientTable.container.hidden
+  this.nutrientTable.container.hidden = (currentState) ? false : true
+}
 
 export default class foodItem extends HTMLElement {
 
@@ -52,14 +105,11 @@ export default class foodItem extends HTMLElement {
     this.container = document.createElement('div')
     this.container.classList.add('container')
 
-    this.checkBox = document.createElement('input')
-    this.checkBox.setAttribute('type', 'checkbox')
-    this.checkBox.addEventListener('click', (e) => {
-      e.stopImmediatePropagation()
-      this.dispatchEvent(new CustomEvent('FoodSelected', { composed: true, detail: this.data }))
-    })
-
+    this.checkBox = CheckBox.call(this)
     this.container.append(this.checkBox)
+
+    this.removeButton = RemoveButton.call(this)
+    this.container.append(this.removeButton)
 
     this.name = document.createElement('div')
     this.name.classList.add('name')
@@ -70,26 +120,6 @@ export default class foodItem extends HTMLElement {
     this.nutrientTable.container.hidden = true
     this.container.append(this.nutrientTable)
 
-    this.container.addEventListener('click', (event) => {
-      let currentState = this.nutrientTable.container.hidden
-      let status = this.getAttribute('data-status')
-      switch (status) {
-        case 'SIGNED':
-        case 'COMMITTED':
-          this.nutrientTable.container.hidden = (currentState) ? false : true
-          this.container.classList.value = 'container' 
-          break
-        case 'SUBMITTED':
-          if (!this.confirmSubmission) throw new Error('confirm function is not defined')
-          this.confirmSubmission()
-          break
-        case 'ASFOOD':
-          this.nutrientTable.container.hidden = (currentState) ? false : true
-          this.container.classList.value = 'container asFood' 
-          break
-      }
-    })
-
     this.shadow.appendChild(this.container)
   }
 
@@ -97,28 +127,34 @@ export default class foodItem extends HTMLElement {
     if (name === 'data-status') {
       switch (newValue) {
         case 'SIGNED':
-          this.container.className = 'container'
-          this.container.classList.add('signed')
+          this.container.className = 'container signed'
           this.nutrientTable.setAttribute('data-review', true)
+          this.onclick = toggleNutrientTable.bind(this)
           break
 
         case 'SUBMITTED':
-          this.container.className = 'container'
-          this.container.classList.add('submitted')
+          this.container.className = 'container submitted'
           this.nutrientTable.setAttribute('data-review', true)
+          this.onclick = this.confirmSubmission
           break
 
         case 'COMMITTED':
-          this.container.className = 'container'
-          this.container.classList.add('committed')
+          this.container.className = 'container committed'
           this.nutrientTable.setAttribute('data-review', true)
+          this.onclick = toggleNutrientTable.bind(this)
           break
 
         case 'ASFOOD':
-          this.container.className = 'container'
-          this.container.classList.add('asFood')
+          this.container.className = 'container asFood'
           this.nutrientTable.setAttribute('data-review', true)
+          this.onclick = toggleNutrientTable.bind(this)
           break
+
+        case 'SELECTED':
+          this.container.className = 'container asFood'
+          this.nutrientTable.setAttribute('data-review', true)
+          this.removeButton.className = 'removeButton selected'
+          this.onclick = toggleNutrientTable.bind(this)
       }
     }
   }

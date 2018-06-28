@@ -22,6 +22,7 @@ const styles = {
     'padding-right': '0px',
     'margin-left': '10px',
     'margin-right': '10px',
+    'margin-bottom': '0px',
     'border-bottom': 'dotted lightgrey'
   },
   'foodSelector': {
@@ -95,7 +96,7 @@ export default class consumptionEditor extends HTMLElement {
       let data = e.detail
       let foodItem = document.createElement('food-item')
       foodItem.init(data, 'DATABASE')
-      foodItem.setAttribute('data-status', 'ASFOOD')
+      foodItem.setAttribute('data-status', 'SELECTED')
       this.shadow.insertBefore(foodItem, this.foodSelector)
     })
   }

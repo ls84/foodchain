@@ -1,4 +1,5 @@
-const serverAddress = ''
+// const serverAddress = ''
+const serverAddress = 'https://bismuth83.net'
 
 onmessage = function (e) {
   switch(e.data[0]) {

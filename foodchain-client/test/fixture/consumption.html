@@ -87,6 +87,12 @@
         consumptionView.hidden = false
         consumptionView.consumptionEditor.dispatchEvent(new CustomEvent('AddFood', { composed: true, detail: data }))
       }, true)
+
+      document.addEventListener('FoodRemovedFromConsumption', (e) => {
+        let node = Array.from(foodView.shadow.querySelectorAll('food-item[data-status="COMMITTED"]'))
+        .find((n) => n.name.textContent === e.detail)
+        .checkBox.uncheck()
+      }, true)
     </script>
   </body>
 </html>
