@@ -1,10 +1,10 @@
 version: '3'
 services:
-  foodchain:
+  foodchain-client:
     image: node:latest
-    container_name: foodchain
+    container_name: foodchain-client
     volumes:
-      - .:/foodchain
+      - .:/foodchain-client
     ports:
-      - 8003:8003
+      - 8000-8002:8000-8002
     entrypoint: ['tail', '-f', '/dev/null']

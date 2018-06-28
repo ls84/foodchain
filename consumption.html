@@ -4,11 +4,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="white">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
-    <script src="../../dist/external/cbor.js" type="text/javascript"></script>
-    <script src="../../dist/external/elliptic.min.js" type="text/javascript"></script>
-    <script src="../../dist/external/protobuf.min.js" type="text/javascript"></script>
-    <script src="../../dist/external/jss.min.js"></script>
-    <script src="../../dist/external/jss-nested.min.js"></script>
+    <script src="./lib/cbor.js" type="text/javascript"></script>
+    <script src="./lib/elliptic.min.js" type="text/javascript"></script>
+    <script src="./lib/protobuf.min.js" type="text/javascript"></script>
+    <script src="./lib/jss.min.js"></script>
+    <script src="./lib/jss-nested.min.js"></script>
 
     <style>
       body {
@@ -18,48 +18,48 @@
   </head>
   <body>
     <script type='module'>
-      window.DB = new Worker('../../src/DBWorker.js')
-      window.BLOCK = new Worker('../../src/BlockWorker.js')
-      window.NameResolver = new Worker('../../src/NameResolver.js')
+      window.DB = new Worker('./src/DBWorker.js')
+      window.BLOCK = new Worker('./src/BlockWorker.js')
+      window.NameResolver = new Worker('./src/NameResolver.js')
 
-      import sawtooth from  '../../src/Sawtooth.js'
+      import sawtooth from  './src/Sawtooth.js'
       window.sawtooth = sawtooth
 
-      import { sha256Hex } from '../../src/hashing.js'
+      import { sha256Hex } from './src/hashing.js'
       window.sha256Hex = sha256Hex
 
-      import b64ToBuffer from '../../src/b64ToBuffer.js'
+      import b64ToBuffer from './src/b64ToBuffer.js'
       window.b64ToBuffer = b64ToBuffer
 
-      import nutrientTable from '../../src/nutrientTable.js'
+      import nutrientTable from './src/nutrientTable.js'
       customElements.define('nutrient-table', nutrientTable)
 
-      import foodEditor from '../../src/foodEditor.js'
+      import foodEditor from './src/foodEditor.js'
       customElements.define('food-editor', foodEditor)
 
-      import foodItem from '../../src/foodItem.js'
+      import foodItem from './src/foodItem.js'
       customElements.define('food-item', foodItem)
 
-      import SignButton from '../../src/SignButton.js'
+      import SignButton from './src/SignButton.js'
       window.SignButton = SignButton
 
-      import SubmitButton from '../../src/submitButton.js'
+      import SubmitButton from './src/submitButton.js'
       window.SubmitButton = SubmitButton
 
-      import confirmSubmission from '../../src/confirmSubmission.js'
+      import confirmSubmission from './src/confirmSubmission.js'
       window.confirmSubmission = confirmSubmission
 
-      import { populateFoodView, syncFood } from '../../src/populateFoodView.js'
+      import { populateFoodView, syncFood } from './src/populateFoodView.js'
       window.populateFoodView = populateFoodView
       window.syncFood = syncFood
 
-      import foodView from '../../src/foodView.js'
+      import foodView from './src/foodView.js'
       customElements.define('food-view', foodView)
 
-      import consumptionEditor from '../../src/consumptionEditor.js'
+      import consumptionEditor from './src/consumptionEditor.js'
       customElements.define('consumption-editor', consumptionEditor)
 
-      import consumptionView from '../../src/consumptionView.js'
+      import consumptionView from './src/consumptionView.js'
       customElements.define('consumption-view', consumptionView)
     </script>
     <script type='module'>

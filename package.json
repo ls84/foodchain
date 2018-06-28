@@ -1,20 +1,16 @@
 {
-  "name": "foodchain",
+  "name": "foodchain-client",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack-dev-server"
+    "serve": "http-server . -p 8002 -c -1"
   },
   "author": "Liu Shuo",
   "license": "ISC",
+  "dependencies": {},
   "devDependencies": {
-    "webpack": "^4.1.1",
-    "webpack-cli": "^2.0.12",
-    "webpack-dev-server": "^3.1.1"
-  },
-  "dependencies": {
-    "jss": "^9.8.1",
-    "jss-preset-default": "^4.3.0"
+    "cbor": "^4.1.0",
+    "http-server": "^0.11.1"
   }
 }
