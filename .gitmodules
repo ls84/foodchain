@@ -1,3 +1,6 @@
 [submodule "project"]
 	path = project
 	url = https://github.com/ls84/foodchain-project.git
+[submodule "test"]
+	path = test
+	url = https://github.com/ls84/foodchain-client-test.git
