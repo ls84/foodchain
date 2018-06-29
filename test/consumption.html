@@ -22,7 +22,7 @@
       window.BLOCK = new Worker('../src/BlockWorker.js')
       window.NameResolver = new Worker('../src/NameResolver.js')
 
-      import sawtooth from  '../src/Sawtooth.js'
+      import sawtooth from  '../src/sawtooth.js'
       window.sawtooth = sawtooth
 
       import { sha256Hex } from '../src/hashing.js'
@@ -43,7 +43,7 @@
       import SignButton from '../src/SignButton.js'
       window.SignButton = SignButton
 
-      import SubmitButton from '../src/submitButton.js'
+      import SubmitButton from '../src/SubmitButton.js'
       window.SubmitButton = SubmitButton
 
       import confirmSubmission from '../src/confirmSubmission.js'
