@@ -83,7 +83,8 @@ export default class consumptionEditor extends HTMLElement {
     label.textContent = 'Add food ...'
     this.foodSelector.append(label)
     this.foodSelector.addEventListener('click', (e) => {
-      this.dispatchEvent(new CustomEvent('SelectFood', { composed: true }))
+      let selected = Array.from(this.shadow.querySelectorAll('food-item')).map(n => n.data)
+      this.dispatchEvent(new CustomEvent('FoodSelect', { composed: true, detail: selected }))
     })
 
     container.appendChild(this.datetimeInput)
@@ -94,6 +95,34 @@ export default class consumptionEditor extends HTMLElement {
 
     this.addEventListener('AddFood', (e) => {
       let data = e.detail
+      let foodItem = document.createElement('food-item')
+      foodItem.init(data, 'DATABASE')
+      foodItem.setAttribute('data-status', 'SELECTED')
+      this.shadow.insertBefore(foodItem, this.foodSelector)
+    })
+  }
+
+  applyFoodSelection (data) {
+    let exists = Array.from(this.shadow.querySelectorAll('food-item')).map(n => n.data)
+    let selection = data
+
+    let add = new Set(selection.map(n => n.name))
+    exists.forEach((n) => {
+      add.delete(n.name)
+    })
+
+    let remove = new Set(exists.map(n => n.name))
+    selection.forEach(n => {
+      remove.delete(n.name)
+    })
+
+    remove.forEach((name) => {
+      Array.from(this.shadow.querySelectorAll('food-item')).find((n) => n.data.name === name)
+      .remove()
+    })
+
+    add.forEach((name) => {
+      let data = selection.find(d => d.name === name)
       let foodItem = document.createElement('food-item')
       foodItem.init(data, 'DATABASE')
       foodItem.setAttribute('data-status', 'SELECTED')

@@ -52,21 +52,7 @@ function CheckBox () {
   let previousState = false
   let checkBox = document.createElement('input')
   checkBox.setAttribute('type', 'checkbox')
-  checkBox.addEventListener('click', (e) => {
-    e.stopImmediatePropagation()
-    if (!previousState) {
-      this.dispatchEvent(new CustomEvent('FoodSelected', { composed: true, detail: this.data }))
-    }
-    if (previousState) {
-      checkBox.checked = true
-    }
-    previousState = checkBox.checked
-  })
-
-  checkBox.uncheck = () => {
-    checkBox.checked = false
-    previousState = false
-  }
+  checkBox.addEventListener('click', (e) => { e.stopImmediatePropagation() })
 
   return checkBox
 }

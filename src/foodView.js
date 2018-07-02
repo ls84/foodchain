@@ -166,14 +166,34 @@ export default class foodView extends HTMLElement {
     this.addEventListener('FoodSigned', foodSignedHandler.bind(this), true)
     this.addEventListener('FoodSubmitted', foodSubmittedHandler.bind(this), true)
     this.addEventListener('FoodCommitted', foodCommittedHandler.bind(this), true)
-    // this.addEventListener('FoodSelected', () => {
-    //   debugger
-    // }, true)
+
+    this.addEventListener('FoodSelectionOk', (e) => {
+      let data = Array.from(this.shadow.querySelectorAll('food-item'))
+      .filter(n => n.checkBox.checked)
+      .map(n => {
+        n.checkBox.checked = false
+        return n.data
+      })
+
+      this.selectionControl.hidden = true
+      this.dispatchEvent(new CustomEvent('FoodSelected', { composed: true, detail: data }))
+    }, true)
+
+    this.addEventListener('FoodSelectionCancel', (e) => {
+      this.shadow.querySelectorAll('food-item')
+      .forEach((n) => {
+        n.checkBox.checked = false
+      })
+    }, true)
 
     //TODO:
     // this.searchInput.addEventListener
     // this.signButton.addEventListener
     // this.submitButton.addEventListener
+
+    this.selectionControl = document.createElement('selection-control')
+    this.selectionControl.hidden = true
+    this.shadow.appendChild(this.selectionControl)
 
     this.searchInput = SearchInput()
     this.shadow.appendChild(this.searchInput)
@@ -189,6 +209,7 @@ export default class foodView extends HTMLElement {
 
     this.populateFoodView = populateFoodView.bind(this)
     this.syncFood = syncFood.bind(this)
+
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -196,5 +217,12 @@ export default class foodView extends HTMLElement {
       this.shadow.querySelectorAll('food-item[data-status="COMMITTED"]')
       .forEach((n) => { n.checkBox.classList.add('select') })
     }
+  }
+
+  checkSelectedFood (data) {
+    data.forEach((d) => {
+      Array.from(this.shadow.querySelectorAll('food-item')).find(n => n.data.name === d.name)
+      .checkBox.checked = true
+    })
   }
 }

@@ -14,6 +14,14 @@
       body {
         background-color: whitesmoke;
       }
+      .control {
+        position: fixed;
+        background-color: red;
+        width: 100px;
+        height: 100px;
+        bottom: 8px;
+        right: 8px;
+      }
     </style>
   </head>
   <body>
@@ -61,6 +69,8 @@
 
       import consumptionView from '../src/consumptionView.js'
       customElements.define('consumption-view', consumptionView)
+
+      import '../src/SelectionControl.js'
     </script>
     <script type='module'>
       window.signedFoodData = []
@@ -75,23 +85,25 @@
       foodView.hidden = true
       foodView.populateFoodView()
 
-      document.addEventListener('SelectFood', (e) => {
-        consumptionView.hidden = true
+      document.addEventListener('FoodSelect', (e) => {
         foodView.setAttribute('data-mode', 'SELECT')
+
+        if (e.detail.length > 0) foodView.checkSelectedFood(e.detail)
+
+        consumptionView.hidden = true
         foodView.hidden = false
+        foodView.selectionControl.hidden = false
       }, true)
 
       document.addEventListener('FoodSelected', (e) => {
-        let data = e.detail
+        consumptionView.consumptionEditor.applyFoodSelection(e.detail)
         foodView.hidden = true
         consumptionView.hidden = false
-        consumptionView.consumptionEditor.dispatchEvent(new CustomEvent('AddFood', { composed: true, detail: data }))
       }, true)
 
-      document.addEventListener('FoodRemovedFromConsumption', (e) => {
-        let node = Array.from(foodView.shadow.querySelectorAll('food-item[data-status="COMMITTED"]'))
-        .find((n) => n.name.textContent === e.detail)
-        .checkBox.uncheck()
+      document.addEventListener('FoodSelectionCancel', (e) => {
+        foodView.hidden = true
+        consumptionView.hidden = false
       }, true)
     </script>
   </body>
