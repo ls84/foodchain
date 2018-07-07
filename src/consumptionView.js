@@ -23,11 +23,18 @@ const styles = {
 
 const styleSheet = JSS.createStyleSheet(styles)
 
+async function signConsumption() {
+  let data = await this.consumptionEditor.compileData()
+  DB.postMessage(['InsertConsumption', data])
+}
+
 function SignButton() {
   let sign = document.createElement('div')
   sign.className = 'signButton'
-  
+ 
   sign.textContent = 'Sign'
+  
+  sign.addEventListener('click', signConsumption.bind(this))
 
   return sign
 }
@@ -45,5 +52,6 @@ export default class consumptionView extends HTMLElement {
 
     this.signButton = SignButton()
     this.shadow.appendChild(this.signButton)
+
   }
 }

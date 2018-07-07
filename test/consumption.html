@@ -106,5 +106,15 @@
         consumptionView.hidden = false
       }, true)
     </script>
+    <script>
+      DB.addEventListener('message',(e) => {
+        // NOTE: keeping this log to checkout how much code will have to be rewritten, if moved all DB eventListener to document level
+        console.log('DB message', e.data)
+        switch (e.data[0]) {
+          case 'ConsumptionInserted':
+            consumptionView.addConsumption(e.data[1])
+        }
+      })
+    </script>
   </body>
 </html>

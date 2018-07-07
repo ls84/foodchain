@@ -257,5 +257,10 @@ onmessage = function (e) {
         postMessage(['FavouritesMerged', data])
       })
       break
+
+    case 'InsertConsumption':
+      console.log(e.data[1])
+      let data
+      postMessage(['ConsumptionInserted', data])
   }
 }
