@@ -50,7 +50,7 @@ export default class consumptionView extends HTMLElement {
     this.consumptionEditor = document.createElement('consumption-editor')
     this.shadow.appendChild(this.consumptionEditor)
 
-    this.signButton = SignButton()
+    this.signButton = SignButton.call(this)
     this.shadow.appendChild(this.signButton)
 
   }
