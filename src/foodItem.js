@@ -145,42 +145,13 @@ export default class foodItem extends HTMLElement {
     }
   }
 
-  init (data, source) {
-    this.data.name = data.food.name
-    this.data.food = data.food
-    this.data.transaction = data.transaction
-    this.data.batchID = data.batchID
-    this.data.name = data.name
+  init (data) {
+    this.data = data
     if (!this.data.name) throw new Error('data does not have a name')
     this.name.textContent = this.data.name
 
     for (let property in this.data.food) {
       if (property !== 'name') this.nutrientTable.addConstituent(property, this.data.food[property])
     }
-  }
-
-  build () {
-    let name = this.data.food.name
-    if (!name) throw new Error('data should have a name')
-    return sha256Hex(name)
-    .then((hex) => {
-      let address = '100000' + hex
-      let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
-      header.inputs = [address]
-      header.outputs = [address] 
-
-      let payload = { action: 'create', food: this.data.food }
-      return sawtooth.buildTransaction(header, payload)
-    })
-    .then((transaction) => {
-      this.data.timeStamp = Date.now()
-      this.data.status = 'SIGNED'
-      this.data.transaction = transaction
-
-      return Promise.resolve(this.data)
-    })
-    .catch((error) => {
-      console.log(error)
-    })
   }
 }
