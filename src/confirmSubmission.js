@@ -3,7 +3,6 @@ function confirmUpdateHandler(e) {
     case 'FoodItemsUpdated':
       e.data[1].forEach((d) => {
         this.dispatchEvent(new CustomEvent('FoodCommitted', { composed: true, detail: { data: d } }))
-        debugger
       })
   }
 }
