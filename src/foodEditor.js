@@ -109,6 +109,7 @@ export default class foodEditor extends HTMLElement {
 
   compileData () {
     let name = this.nameInput.value
+    let foodAddress
     let data = {
       name,
       food: { name },
@@ -121,11 +122,11 @@ export default class foodEditor extends HTMLElement {
 
     return sha256Hex(name)
     .then((hex) => {
-      let foodAddress = '100000' + hex
+      foodAddress = '100000' + hex
       let signerAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
       let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
       header.inputs = [foodAddress, signerAddress]
-      header.outputs = [foodAddress, signerAddress] 
+      header.outputs = [foodAddress, signerAddress]
 
       let payload = { action: 'create', data: data }
       return sawtooth.buildTransaction(header, payload)
@@ -133,6 +134,7 @@ export default class foodEditor extends HTMLElement {
     .then((transaction) => {
       data.status = 'SIGNED'
       data.transaction = transaction
+      data.foodAddress = foodAddress
 
       return Promise.resolve(data)
     })
