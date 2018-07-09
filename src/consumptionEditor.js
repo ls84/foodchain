@@ -2,6 +2,8 @@ const JSS = jss.create()
 JSS.setup({createGenerateClassName: () => (rule, sheet) => rule.key})
 JSS.use(jssNested.default())
 
+import { sha256Hex } from './hashing.js'
+
 const styles = {
   'container': {
     'width': '100%',
@@ -71,7 +73,7 @@ export default class consumptionEditor extends HTMLElement {
     this.datetimeInput.classList.add('datetimeInput')
     this.datetimeInput.setAttribute('type', 'datetime-local')
     this.datetimeInput.value = formatLocalDatetime(new Date())
-    this.value = this.datetimeInput.value
+    this.datetimeValue = this.datetimeInput.value
 
     this.foodSelector = document.createElement('div')
     this.foodSelector.classList.add('foodSelector')
@@ -127,6 +129,44 @@ export default class consumptionEditor extends HTMLElement {
       foodItem.init(data, 'DATABASE')
       foodItem.setAttribute('data-status', 'SELECTED')
       this.shadow.insertBefore(foodItem, this.foodSelector)
+    })
+  }
+
+  compileData () {
+    let myPublicKey = sawtooth.key.getPublic().encodeCompressed('hex')
+    let datetimeValue = this.datetimeValue
+    let foodItemsData = Array.from(this.shadow.querySelectorAll('food-item'))
+    .map((n) => {
+      return {
+        foodAddress: n.data.foodAddress,
+        name: n.data.name,
+        food: n.data.food
+      }
+    })
+
+    let data = { datetimeValue, foodItemsData }
+
+    return sha256Hex(`${datetimeValue},${myPublicKey}`)
+    .then((hex) => {
+      let signerAddress = '100000' + sawtooth.key.getPublic().encodeCompressed('hex').substr(2,64)
+      let consumptionAddress = `100000${hex}`
+      let header = {'familyName': 'foodchain', 'familyVersion': '1.0'}
+      header.inputs = [consumptionAddress, signerAddress]
+      header.outputs = [consumptionAddress, signerAddress]
+
+      data.consumptionAddress = consumptionAddress
+
+      let payload = { action: 'consume', data:foodItemsData }
+      return sawtooth.buildTransaction(header, payload)
+    })
+    .then((transaction) => {
+      data.status = 'SIGNED'
+      data.transaction = transaction
+
+      return Promise.resolve(data)
+    })
+    .catch((error) => {
+      console.log(error)
     })
   }
 }
