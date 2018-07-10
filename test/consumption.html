@@ -80,6 +80,7 @@
 
       window.consumptionView = document.createElement('consumption-view')
       document.body.appendChild(consumptionView)
+      // consumptionView.populateView()
 
       window.foodView = document.createElement('food-view')
       document.body.appendChild(foodView)
@@ -111,10 +112,16 @@
         // NOTE: keeping this log to checkout how much code will have to be rewritten, if moved all DB eventListener to document level
         console.log('DB message', e.data)
         switch (e.data[0]) {
+          case 'AllConsumptionData':
+            consumptionView.addConsumption(e.data[1])
+            break
           case 'ConsumptionInserted':
             consumptionView.addConsumption(e.data[1])
+            break
         }
       })
+
+      DB.postMessage(['GetAllConsumptionData'])
     </script>
   </body>
 </html>

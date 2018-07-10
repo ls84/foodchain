@@ -3,6 +3,9 @@ JSS.setup({createGenerateClassName: () => (rule, sheet) => rule.key})
 JSS.use(jssNested.default())
 
 let styles = {
+  'container': {
+    'margin-bottom': '10px'
+  },
   'datetimeValue': {
    'background-color': 'white',
    'font-size': '24px',
@@ -17,7 +20,7 @@ let styles = {
 const styleSheet = JSS.createStyleSheet(styles)
 
 function toggleConsumptionDetail() {
-  this.container.hidden = (this.container.hidden)? false : true
+  this.foodTable.hidden = (this.foodTable.hidden)? false : true
 }
 
 class consumptionItem extends HTMLElement {
@@ -35,12 +38,15 @@ class consumptionItem extends HTMLElement {
 
     this.container = document.createElement('div')
     this.container.className = 'container'
-    this.container.hidden = true
 
     this.datetimeValue = document.createElement('div')
     this.datetimeValue.className = 'datetimeValue'
     this.datetimeValue.addEventListener('click', toggleConsumptionDetail.bind(this))
-    this.shadow.appendChild(this.datetimeValue)
+    this.container.appendChild(this.datetimeValue)
+
+    this.foodTable = document.createElement('div')
+    this.foodTable.hidden = true
+    this.container.append(this.foodTable)
 
     this.shadow.appendChild(this.container)
   }
@@ -55,7 +61,7 @@ class consumptionItem extends HTMLElement {
       let foodItem = document.createElement('food-item')
       foodItem.init(d)
       foodItem.setAttribute('data-status', 'ASFOOD')
-      this.container.appendChild(foodItem)
+      this.foodTable.appendChild(foodItem)
     })
   }
 }

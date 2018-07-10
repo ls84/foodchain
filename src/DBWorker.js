@@ -259,7 +259,6 @@ onmessage = function (e) {
       break
 
     case 'InsertConsumption':
-      console.log(e.data)
       database.insertAll('consumption', e.data[1])
       .then((data) => {
         postMessage(['ConsumptionInserted', data])
@@ -267,7 +266,16 @@ onmessage = function (e) {
       .catch((e) => {
         postMessage(['ConsumptionInsertionError', e.message])
       })
-      // postMessage(['ConsumptionInserted', data])
+      break
+
+    case 'GetAllConsumptionData':
+      database.getAll('consumption')
+      .then((data) => {
+        postMessage(['AllConsumptionData', data])
+      })
+      .catch((error) => {
+        console.log(error)
+      })
       break
   }
 }
