@@ -29,14 +29,27 @@ async function signConsumption() {
 }
 
 function SignButton() {
-  let sign = document.createElement('div')
-  sign.className = 'signButton'
- 
-  sign.textContent = 'Sign'
+  let signButton = document.createElement('div')
+  signButton.className = 'signButton'
+  signButton.textContent = 'Sign'
   
-  sign.addEventListener('click', signConsumption.bind(this))
+  signButton.addEventListener('click', signConsumption.bind(this))
 
-  return sign
+  return signButton
+}
+
+function submitConsumption() {
+  // TODO
+}
+
+function SubmitButton() {
+  let submitButton = document.createElement('div')
+  submitButton.className = 'submitButton'
+  submitButton.textContent = 'Submit'
+  
+  submitButton.addEventListener('click', submitConsumption.bind(this))
+
+  return submitButton
 }
 
 export default class consumptionView extends HTMLElement {
@@ -53,5 +66,8 @@ export default class consumptionView extends HTMLElement {
     this.signButton = SignButton.call(this)
     this.shadow.appendChild(this.signButton)
 
+    this.submitButton = SubmitButton.call(this)
+    this.submitButton.hidden = true
+    this.shadow.appendChild(this.submitButton)
   }
 }
