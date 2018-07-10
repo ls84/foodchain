@@ -185,8 +185,8 @@ request.onupgradeneeded = function (event) {
       foodStore.createIndex('status', 'status', {unique: false})
       foodStore.createIndex('timeStamp', 'timeStamp', {unique: false})
 
-      let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetime'})
-      consumptionStore.createIndex('datetime', 'datetime', {unique: true})
+      let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetimeValue'})
+      consumptionStore.createIndex('datetimeValue', 'datetimeValue', {unique: true})
       consumptionStore.createIndex('status', 'status', {unique: false})
       consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
   }
@@ -259,8 +259,15 @@ onmessage = function (e) {
       break
 
     case 'InsertConsumption':
-      console.log(e.data[1])
-      let data
-      postMessage(['ConsumptionInserted', data])
+      console.log(e.data)
+      database.insertAll('consumption', e.data[1])
+      .then((data) => {
+        postMessage(['ConsumptionInserted', data])
+      })
+      .catch((e) => {
+        postMessage(['ConsumptionInsertionError', e.message])
+      })
+      // postMessage(['ConsumptionInserted', data])
+      break
   }
 }

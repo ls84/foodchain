@@ -25,7 +25,7 @@ const styleSheet = JSS.createStyleSheet(styles)
 
 async function signConsumption() {
   let data = await this.consumptionEditor.compileData()
-  DB.postMessage(['InsertConsumption', data])
+  DB.postMessage(['InsertConsumption', [data]])
 }
 
 function SignButton() {
