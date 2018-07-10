@@ -70,4 +70,16 @@ export default class consumptionView extends HTMLElement {
     this.submitButton.hidden = true
     this.shadow.appendChild(this.submitButton)
   }
+
+  addConsumption(data) {
+    data.forEach((d) => {
+    let consumptionItem = document.createElement('consumption-item')
+    consumptionItem.init(d)
+      switch (d.status) {
+        case 'SIGNED':
+          this.shadow.insertBefore(consumptionItem, this.submitButton)
+          break
+      }
+    })
+  }
 }
