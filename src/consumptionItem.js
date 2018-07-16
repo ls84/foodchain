@@ -52,6 +52,7 @@ class consumptionItem extends HTMLElement {
   }
 
   init(data) {
+    this.data = data
     this.datetimeValue.textContent = data.datetimeValue
     .replace(/-/g, '/')
     .replace('T',', ' )
