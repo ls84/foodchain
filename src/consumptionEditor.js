@@ -156,7 +156,7 @@ export default class consumptionEditor extends HTMLElement {
 
       data.consumptionAddress = consumptionAddress
 
-      let payload = { action: 'consume', data:foodItemsData }
+      let payload = { action: 'consume', data }
       return sawtooth.buildTransaction(header, payload)
     })
     .then((transaction) => {
