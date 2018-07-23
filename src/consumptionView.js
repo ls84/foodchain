@@ -143,8 +143,8 @@ export default class consumptionView extends HTMLElement {
     let items = Array.from(this.shadow.querySelectorAll('consumption-item'))
     data.forEach((d) => {
       let item = items.filter(n => n.data.datetimeValue == d.datetimeValue)[0]
-      item.setAttribute('data-status', d.status)
       if (d.status === 'SUBMITTED') item.confirmSubmission = confirmSubmission.bind(item)
+      item.setAttribute('data-status', d.status)
       this.shadow.appendChild(item)
     })
   }
