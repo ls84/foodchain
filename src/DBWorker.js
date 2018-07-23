@@ -277,5 +277,15 @@ onmessage = function (e) {
         console.log(error)
       })
       break
+
+    case 'UpdateConsumptionItems':
+      database.updateAll('consumption',e.data[1])
+      .then((data) => {
+        postMessage(['ConsumptionUpdated', data])
+      })
+      .catch((e) => {
+        postMessage(['ConsumptionUpdateError'])
+      })
+      break
   }
 }

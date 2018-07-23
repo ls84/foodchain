@@ -118,6 +118,8 @@
           case 'ConsumptionInserted':
             consumptionView.addConsumption(e.data[1])
             break
+          case 'ConsumptionUpdated':
+            consumptionView.updateConsumption(e.data[1])
         }
       })
 
