@@ -92,6 +92,11 @@ function SubmitButton() {
   return submitButton
 }
 
+function confirmSubmission () {
+  let batchID = this.data.batchID
+  BLOCK.postMessage(['ConfirmSubmission', batchID])
+}
+
 export default class consumptionView extends HTMLElement {
   constructor () {
     super()
@@ -122,6 +127,7 @@ export default class consumptionView extends HTMLElement {
           this.submitButton.hidden = false
           break
         case 'SUBMITTED':
+          consumptionItem.confirmSubmission = confirmSubmission.bind(consumptionItem)
           consumptionItem.setAttribute('data-status', 'SUBMITTED')
           this.shadow.appendChild(consumptionItem)
           break
@@ -134,6 +140,7 @@ export default class consumptionView extends HTMLElement {
     data.forEach((d) => {
       let item = items.filter(n => n.data.datetimeValue == d.datetimeValue)[0]
       item.setAttribute('data-status', d.status)
+      if (d.status === 'SUBMITTED') item.confirmSubmission = confirmSubmission.bind(item)
       this.shadow.appendChild(item)
     })
   }
