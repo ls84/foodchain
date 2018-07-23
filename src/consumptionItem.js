@@ -66,6 +66,10 @@ class consumptionItem extends HTMLElement {
           this.container.className = 'container submitted'
           this.datetimeValue.onclick = this.confirmSubmission
           break
+        case 'COMMITTED':
+          this.container.className = 'container'
+          this.datetimeValue.onclick = toggleConsumptionDetail.bind(this)
+          break
       }
     }
   }
