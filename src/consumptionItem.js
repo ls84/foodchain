@@ -4,10 +4,13 @@ JSS.use(jssNested.default())
 
 let styles = {
   'container': {
-    'margin-bottom': '10px'
+    'margin-bottom': '10px',
+    'background-color': 'white',
+    '&.submitted': {
+      'background-color': 'lightyellow'
+    }
   },
   'datetimeValue': {
-   'background-color': 'white',
    'font-size': '24px',
    'font-family': 'sans-serif',
    'font-weight': '100',
@@ -41,7 +44,8 @@ class consumptionItem extends HTMLElement {
 
     this.datetimeValue = document.createElement('div')
     this.datetimeValue.className = 'datetimeValue'
-    this.datetimeValue.addEventListener('click', toggleConsumptionDetail.bind(this))
+    // this.datetimeValue.addEventListener('click', toggleConsumptionDetail.bind(this))
+    this.datetimeValue.onclick = toggleConsumptionDetail.bind(this)
     this.container.appendChild(this.datetimeValue)
 
     this.foodTable = document.createElement('div')
@@ -49,6 +53,21 @@ class consumptionItem extends HTMLElement {
     this.container.append(this.foodTable)
 
     this.shadow.appendChild(this.container)
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'data-status') {
+      switch (newValue) {
+        case 'SIGNED':
+          this.container.className = 'container'
+          this.datetimeValue.onclick = toggleConsumptionDetail.bind(this)
+          break
+        case 'SUBMITTED':
+          this.container.className = 'container submitted'
+          this.datetimeValue.onclick = this.confirmSubmission
+          break
+      }
+    }
   }
 
   init(data) {
