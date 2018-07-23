@@ -131,6 +131,10 @@ export default class consumptionView extends HTMLElement {
           consumptionItem.setAttribute('data-status', 'SUBMITTED')
           this.shadow.appendChild(consumptionItem)
           break
+        case 'COMMITTED':
+          consumptionItem.setAttribute('data-status', 'COMMITTED')
+          this.shadow.appendChild(consumptionItem)
+          break
       }
     })
   }
