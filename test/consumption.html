@@ -108,6 +108,29 @@
         consumptionView.hidden = false
       }, true)
 
+      BLOCK.addEventListener('message', (e) => {
+        // NOTE: keeping this log to checkout how much code will have to be rewritten, if moved all DB eventListener to document level
+        console.log('BLOCK message', e.data)
+        switch (e.data[0]) {
+          case 'SubmissionConfirmed':
+            let batchID = e.data[1]
+            let submittedItemsUpdate = Array.from(consumptionView.shadow.querySelectorAll('consumption-item'))
+            .filter(n => n.data.batchID == batchID)
+            .map((n) => {
+              let data = n.data
+              data.status = 'COMMITTED'
+              return data
+            })
+            DB.postMessage(['UpdateConsumptionItems', submittedItemsUpdate])
+
+            break
+          case 'SubmissionPending':
+            break
+          case 'SubmissionConfirmError':
+            break
+        }
+      })
+
       DB.addEventListener('message',(e) => {
         // NOTE: keeping this log to checkout how much code will have to be rewritten, if moved all DB eventListener to document level
         console.log('DB message', e.data)
