@@ -188,7 +188,6 @@ request.onupgradeneeded = function (event) {
       let consumptionStore = db.createObjectStore('consumption', {keyPath: 'datetimeValue'})
       consumptionStore.createIndex('datetimeValue', 'datetimeValue', {unique: true})
       consumptionStore.createIndex('status', 'status', {unique: false})
-      consumptionStore.createIndex('timeStamp', 'timeStamp', {unique: false})
   }
 }
 
