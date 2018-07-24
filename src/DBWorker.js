@@ -286,5 +286,39 @@ onmessage = function (e) {
         postMessage(['ConsumptionUpdateError'])
       })
       break
+
+    case 'MergeWithConsumption':
+      let consumptions = e.data[1]
+      
+      database.getAll('consumption')
+      .then(data => {
+        let block = new Set(consumptions.map((f) => f.datetimeValue))
+        let local = new Set(data.map((d) => d.datetimeValue))
+
+        let add = new Set(block)
+        for (let n of local) {
+          add.delete(n)
+        }
+
+        let addData = []
+        add.forEach((d) => addData.push(consumptions.find(c => c.datetimeValue === d)))
+        addData.forEach((v, i, a) => { a[i].status = 'COMMITTED' })
+
+        let remove = new Set(local)
+        for (let n of block) {
+          remove.delete(n)
+        }
+        
+        let removeData = Array.from(remove)
+
+        return Promise.all([database.insertAll('consumption', addData), database.deleteAll('consumption', removeData)])
+      })
+      .then((data) => {
+        postMessage(['ConsumptionMerged', data])
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+      
   }
 }
