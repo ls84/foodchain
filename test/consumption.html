@@ -112,6 +112,11 @@
         // NOTE: keeping this log to checkout how much code will have to be rewritten, if moved all DB eventListener to document level
         console.log('BLOCK message', e.data)
         switch (e.data[0]) {
+          case 'MyAddressStateFetched':
+            let myState = CBOR.decode(b64ToBuffer(e.data[1]))
+            let consumption = myState.consumption
+            DB.postMessage(['MergeWithConsumption',consumption])
+            
           case 'SubmissionConfirmed':
             let batchID = e.data[1]
             let submittedItemsUpdate = Array.from(consumptionView.shadow.querySelectorAll('consumption-item'))
