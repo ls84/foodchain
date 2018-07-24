@@ -81,12 +81,14 @@ class consumptionItem extends HTMLElement {
     .replace('T',', ' )
     .replace(/:00.000$/, '')
 
-    data.foodItemsData.forEach((d) => {
-      let foodItem = document.createElement('food-item')
-      foodItem.init(d)
-      foodItem.setAttribute('data-status', 'ASFOOD')
-      this.foodTable.appendChild(foodItem)
-    })
+    if (data.foodItemsData) {
+      data.foodItemsData.forEach((d) => {
+        let foodItem = document.createElement('food-item')
+        foodItem.init(d)
+        foodItem.setAttribute('data-status', 'ASFOOD')
+        this.foodTable.appendChild(foodItem)
+      })
+    }
   }
 }
 
